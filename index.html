@@ -21,20 +21,24 @@
 <button id="play">▶️ Play</button>
 <canvas id="canvas" width="600" height="400"></canvas>
 
+
   <div id="symbolLibrary" style="
-  width: 600px; 
-  margin: 10px auto; 
-  background: #444; 
-  color: white; 
-  padding: 10px;
-  display: flex; 
-  flex-wrap: wrap; 
-  gap: 10px;
-  border-radius: 5px;
-  user-select:none;
-">
-  <strong>Symbol Library:</strong>
-</div>
+    width: 160px; 
+    background: #444; 
+    color: white; 
+    padding: 10px;
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px;
+    border-radius: 5px;
+    user-select:none;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    max-height: 480px;
+  ">
+    <strong>Symbol Library:</strong>
+  </div>
 
   
 <div id="timeline">
@@ -125,9 +129,12 @@ document.getElementById("createSymbol").onclick = () => {
 };
 
 
-
-// Receive symbol from popup
 window.receiveSymbol = function(dataURL) {
+  // Add to symbol library array
+  symbolLibrary.push(dataURL);
+  updateSymbolLibrary();
+
+  // Also add the symbol to the stage directly
   const img = new Image();
   img.src = dataURL;
   img.onload = () => {
@@ -138,6 +145,7 @@ window.receiveSymbol = function(dataURL) {
     draw();
   };
 };
+
 
 // Dragging objects
 canvas.onmousedown = e => {
