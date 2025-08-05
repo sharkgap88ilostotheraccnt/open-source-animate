@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <title>Mini Animate with Transform Tools & Symbol Library</title>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 <style>
   body {
     background: #1c2526;
@@ -36,6 +37,13 @@
   button.active {
     background: #0078d7;
     color: #fff;
+  }
+  #topToolbar {
+    text-align: center;
+    margin: 10px 0;
+    background: #2e2e2e;
+    padding: 8px;
+    border-bottom: 1px solid #444;
   }
   #mainContainer {
     display: flex;
@@ -161,13 +169,6 @@
     padding: 8px;
     text-align: center;
   }
-  #topToolbar {
-    text-align: center;
-    margin: 10px 0;
-    background: #2e2e2e;
-    padding: 8px;
-    border-bottom: 1px solid #444;
-  }
 </style>
 </head>
 <body>
@@ -222,6 +223,10 @@ let symbolLibrary = [];
 
 let currentTool = "move";
 
+// Playhead
+const playhead = document.createElement("div");
+playhead.id = "playhead";
+
 // Initialize timeline
 function initTimeline() {
   timeline.innerHTML = "";
@@ -234,11 +239,6 @@ function initTimeline() {
   timeline.appendChild(playhead);
 }
 initTimeline();
-
-// Playhead
-const playhead = document.createElement("div");
-playhead.id = "playhead";
-timeline.appendChild(playhead);
 
 function updatePlayhead() {
   const timelineWidth = timeline.clientWidth;
@@ -352,7 +352,6 @@ updateToolUI();
 
 // Canvas interaction
 function pointInObject(x, y, o) {
-  // Simplified hit detection (no rotation adjustment)
   return x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h;
 }
 
