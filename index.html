@@ -2,47 +2,56 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>open source animate</title>
+<title>Mini Animate with Transform Tools & Symbol Library</title>
 <style>
-  body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
-  canvas { background: #333; margin-top: 10px; cursor: move; display:block; margin:auto; }
-  button { margin: 5px; padding: 5px 10px; }
-  #timeline { width: 600px; height: 60px; background: #444; margin: 10px auto; position: relative; user-select:none; }
-  .frame { width: 10px; height: 100%; border-right: 1px solid #555; float: left; }
-  .keyframe { width: 8px; height: 8px; background: yellow; position: absolute; top: 25px; cursor: pointer; border-radius: 50%; }
-  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; left: 0; cursor: pointer; }
-</style>
-</head>
-<body>
-<h2>Open Source Animate</h2>
-<button id="deleteObj">🗑️ Delete Selected</button>
-<button id="addObj">➕ Rectangle</button>
-<button id="createSymbol">🎨 New Symbol</button>
-<button id="addKey">🎬 Keyframe</button>
-<button id="play">▶️ Play</button>
-<canvas id="canvas" width="600" height="400"></canvas>
-
- 
- <div id="transformToolbar" style="
-  width: 100px; 
-  background: #333; 
-  color: white; 
-  padding: 10px; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 10px;
-  border-radius: 5px;
-  user-select:none;
-">
-  <strong>Transforms</strong>
-  <button id="moveTool">🖐️ Move</button>
-  <button id="scaleTool">⬆️ Scale</button>
-  <button id="rotateTool">🔄 Rotate</button>
-  <button id="flipH">⇄ Flip H</button>
-  <button id="flipV">⇅ Flip V</button>
-</div>
-
-  <div id="symbolLibrary" style="
+  body { background: #222; color: #fff; font-family: sans-serif; margin:0; }
+  h2 { text-align: center; margin-top: 10px; }
+  button { padding: 5px 10px; cursor: pointer; }
+  #mainContainer {
+    display: flex;
+    gap: 10px;
+    width: 900px;
+    margin: 10px auto;
+  }
+  #canvasAndTimeline {
+    flex-grow: 1;
+    position: relative;
+  }
+  canvas {
+    background: #333;
+    display: block;
+    user-select: none;
+  }
+  #timeline {
+    width: 100%;
+    height: 60px;
+    background: #444;
+    position: relative;
+    user-select:none;
+  }
+  .frame {
+    width: 10px;
+    height: 100%;
+    border-right: 1px solid #555;
+    float: left;
+  }
+  .keyframe {
+    width: 8px;
+    height: 8px;
+    background: yellow;
+    position: absolute;
+    top: 25px;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  #playhead {
+    width: 2px;
+    height: 100%;
+    background: red;
+    position: absolute;
+    top: 0;
+  }
+  #symbolLibrary {
     width: 160px; 
     background: #444; 
     color: white; 
@@ -56,79 +65,97 @@
     align-items: center;
     overflow-y: auto;
     max-height: 480px;
-  ">
-    <strong>Symbol Library:</strong>
+  }
+  #symbolLibrary img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+  }
+  #symbolLibrary img:hover {
+    border-color: yellow;
+  }
+  #transformToolbar {
+    width: 100px; 
+    background: #333; 
+    color: white; 
+    padding: 10px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+    border-radius: 5px;
+    user-select:none;
+  }
+  #transformToolbar button {
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h2>Mini Animate with Transform Tools & Symbol Library</h2>
+
+<div style="text-align:center; margin-bottom:10px;">
+  <button id="addObj">➕ Add Rectangle</button>
+  <button id="addKey">🎬 Add Keyframe</button>
+  <button id="play">▶️ Play</button>
+  <button id="createSymbol">🎨 New Symbol</button>
+  <button id="deleteObj">🗑️ Delete Selected</button>
+</div>
+
+<div id="mainContainer">
+  <div id="canvasAndTimeline">
+    <canvas id="canvas" width="600" height="400"></canvas>
+    <div id="timeline"></div>
   </div>
 
-  
-<div id="timeline">
-  <div id="playhead"></div>
+  <div id="transformToolbar">
+    <strong>Transforms</strong>
+    <button id="moveTool">🖐️ Move</button>
+    <button id="scaleTool">⬆️ Scale</button>
+    <button id="rotateTool">🔄 Rotate</button>
+    <button id="flipH">⇄ Flip H</button>
+    <button id="flipV">⇅ Flip V</button>
+  </div>
+
+  <div id="symbolLibrary">
+    <strong>Symbol Library:</strong>
+  </div>
 </div>
 
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const timeline = document.getElementById("timeline");
-const playhead = document.getElementById("playhead");
+const symbolLibraryDiv = document.getElementById("symbolLibrary");
 
 let objects = [];
 let selected = null;
 let dragging = false;
 let offsetX, offsetY;
+let startScale;
+let dragStartAngle;
+let startRotation;
+
 let frames = 60;
 let currentFrame = 0;
-let keyframes = {};
+let keyframes = {}; // obj.id => [{frame,x,y,w,h,rotation,scaleX,scaleY}]
 let isPlaying = false;
 
-const symbolLibraryDiv = document.getElementById("symbolLibrary");
-const symbolLibrary = []; // Array to hold symbol images (data URLs)
+let symbolLibrary = []; // holds image data URLs
 
-  
-function updateSymbolLibrary() {
-  // Clear current thumbnails except the label
-  symbolLibraryDiv.querySelectorAll("img").forEach(img => img.remove());
-  
-  symbolLibrary.forEach((dataURL, index) => {
-    const img = new Image();
-    img.src = dataURL;
-    img.title = `Symbol ${index + 1}`;
-    img.style.width = "60px";
-    img.style.height = "60px";
-    img.style.objectFit = "contain";
-    img.style.cursor = "pointer";
-    img.style.border = "2px solid transparent";
-    img.onmouseenter = () => img.style.borderColor = "yellow";
-    img.onmouseleave = () => img.style.borderColor = "transparent";
-    
-    img.onclick = () => {
-      // Create a new object instance on the stage using this symbol image
-      const symbolImg = new Image();
-      symbolImg.src = dataURL;
-      symbolImg.onload = () => {
-        const obj = { 
-          id: Date.now(), 
-          x: 100, 
-          y: 100, 
-          w: symbolImg.width / 2, 
-          h: symbolImg.height / 2, 
-          image: symbolImg, 
-          color: null 
-        };
-        objects.push(obj);
-        keyframes[obj.id] = [];
-        selected = obj;
-        draw();
-      };
-    };
-    symbolLibraryDiv.appendChild(img);
-  });
-}
+let currentTool = "move";
 
+// Timeline playhead
+const playhead = document.createElement("div");
+playhead.id = "playhead";
+timeline.appendChild(playhead);
 
-  
 function initTimeline() {
   timeline.innerHTML = "";
-  for (let i = 0; i < frames; i++) {
+  for (let i=0; i<frames; i++) {
     const div = document.createElement("div");
     div.className = "frame";
     timeline.appendChild(div);
@@ -137,40 +164,239 @@ function initTimeline() {
 }
 initTimeline();
 
-// Add rectangle
+// Buttons
 document.getElementById("addObj").onclick = () => {
-  const obj = { id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)`, image: null };
+  const obj = { 
+    id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)`,
+    rotation: 0, scaleX: 1, scaleY: 1, image: null,
+  };
   objects.push(obj);
   keyframes[obj.id] = [];
   selected = obj;
   draw();
 };
-document.getElementById("createSymbol").onclick = () => {
-  window.open("symbol-editor.html", "SymbolEditor", "width=500,height=500");
+
+document.getElementById("addKey").onclick = () => {
+  if (selected) {
+    keyframes[selected.id].push({ 
+      frame: currentFrame, x: selected.x, y: selected.y, 
+      w: selected.w, h: selected.h, 
+      rotation: selected.rotation || 0, 
+      scaleX: selected.scaleX || 1, 
+      scaleY: selected.scaleY || 1
+    });
+    renderKeyframes();
+  }
+};
+
+document.getElementById("play").onclick = () => {
+  if (isPlaying) return;
+  isPlaying = true;
+  let frame = 0;
+  function animate() {
+    if (frame >= frames) { isPlaying = false; return; }
+    currentFrame = frame;
+    updateObjectsForFrame(frame);
+    draw();
+    updatePlayhead();
+    frame++;
+    requestAnimationFrame(animate);
+  }
+  animate();
 };
 
 document.getElementById("deleteObj").onclick = () => {
   if (!selected) return;
-  // Remove selected object from objects array
   objects = objects.filter(o => o !== selected);
-  // Remove keyframes
   delete keyframes[selected.id];
   selected = null;
   draw();
   renderKeyframes();
 };
 
-  
+document.getElementById("createSymbol").onclick = () => {
+  window.open("symbol-editor.html", "SymbolEditor", "width=500,height=500");
+};
+
+// Transform tool buttons
+document.getElementById("moveTool").onclick = () => { currentTool = "move"; updateToolUI(); };
+document.getElementById("scaleTool").onclick = () => { currentTool = "scale"; updateToolUI(); };
+document.getElementById("rotateTool").onclick = () => { currentTool = "rotate"; updateToolUI(); };
+
+document.getElementById("flipH").onclick = () => {
+  if (!selected) return;
+  selected.scaleX = (selected.scaleX === undefined ? 1 : selected.scaleX) * -1;
+  draw();
+};
+
+document.getElementById("flipV").onclick = () => {
+  if (!selected) return;
+  selected.scaleY = (selected.scaleY === undefined ? 1 : selected.scaleY) * -1;
+  draw();
+};
+
+function updateToolUI() {
+  ["moveTool","scaleTool","rotateTool"].forEach(id => {
+    document.getElementById(id).style.backgroundColor = (currentTool === id.replace("Tool","")) ? "#555" : "";
+  });
+}
+updateToolUI();
+
+// Canvas interaction helpers
+function pointInObject(x, y, o) {
+  // TODO: more precise with rotation?
+  return x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h;
+}
+
+// Mouse events
+canvas.onmousedown = e => {
+  const mx = e.offsetX, my = e.offsetY;
+  if (currentTool === "move") {
+    selected = objects.find(o => pointInObject(mx, my, o));
+    if (selected) {
+      dragging = true;
+      offsetX = mx - selected.x;
+      offsetY = my - selected.y;
+    }
+  } else if (currentTool === "scale") {
+    selected = objects.find(o => pointInObject(mx, my, o));
+    if (selected) {
+      dragging = true;
+      offsetX = mx;
+      offsetY = my;
+      startScale = { w: selected.w, h: selected.h };
+    }
+  } else if (currentTool === "rotate") {
+    selected = objects.find(o => pointInObject(mx, my, o));
+    if (selected) {
+      dragging = true;
+      const cx = selected.x + selected.w/2;
+      const cy = selected.y + selected.h/2;
+      dragStartAngle = Math.atan2(my - cy, mx - cx);
+      startRotation = selected.rotation || 0;
+    }
+  }
+  draw();
+};
+
+canvas.onmousemove = e => {
+  if (!dragging || !selected) return;
+  const mx = e.offsetX, my = e.offsetY;
+
+  if (currentTool === "move") {
+    selected.x = mx - offsetX;
+    selected.y = my - offsetY;
+  } else if (currentTool === "scale") {
+    selected.w = Math.max(10, startScale.w + (mx - offsetX));
+    selected.h = Math.max(10, startScale.h + (my - offsetY));
+  } else if (currentTool === "rotate") {
+    const cx = selected.x + selected.w/2;
+    const cy = selected.y + selected.h/2;
+    const angle = Math.atan2(my - cy, mx - cx);
+    const diff = angle - dragStartAngle;
+    selected.rotation = startRotation + diff * (180/Math.PI);
+  }
+  draw();
+};
+
+canvas.onmouseup = () => dragging = false;
+
+// Draw function with transforms and images
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  objects.forEach(o => {
+    ctx.save();
+    const cx = o.x + o.w/2;
+    const cy = o.y + o.h/2;
+    ctx.translate(cx, cy);
+    ctx.rotate((o.rotation || 0) * Math.PI / 180);
+    ctx.scale(o.scaleX || 1, o.scaleY || 1);
+    if (o.image) {
+      ctx.drawImage(o.image, -o.w/2, -o.h/2, o.w, o.h);
+    } else {
+      ctx.fillStyle = o.color;
+      ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
+    }
+    if (o === selected) {
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-o.w/2, -o.h/2, o.w, o.h);
+    }
+    ctx.restore();
+  });
+}
+
+// Timeline keyframes rendering
+function renderKeyframes() {
+  document.querySelectorAll(".keyframe").forEach(el => el.remove());
+  for (const objId in keyframes) {
+    keyframes[objId].forEach(kf => {
+      const dot = document.createElement("div");
+      dot.className = "keyframe";
+      dot.style.left = (kf.frame * 10 + 1) + "px";
+      dot.onclick = () => {
+        currentFrame = kf.frame;
+        const obj = objects.find(o => o.id == objId);
+        if (obj) {
+          obj.x = kf.x;
+          obj.y = kf.y;
+          obj.w = kf.w;
+          obj.h = kf.h;
+          obj.rotation = kf.rotation;
+          obj.scaleX = kf.scaleX;
+          obj.scaleY = kf.scaleY;
+          selected = obj;
+          draw();
+          updatePlayhead();
+        }
+      };
+      timeline.appendChild(dot);
+    });
+  }
+}
+
+// Animate interpolation for frames
+function updateObjectsForFrame(frame) {
+  objects.forEach(obj => {
+    const keys = keyframes[obj.id];
+    if (!keys || keys.length < 2) return;
+    let prev = keys[0], next = keys[keys.length - 1];
+    for (let i=0; i < keys.length -1; i++) {
+      if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
+        prev = keys[i];
+        next = keys[i+1];
+        break;
+      }
+    }
+    const t = (frame - prev.frame) / (next.frame - prev.frame);
+    obj.x = prev.x + (next.x - prev.x) * t;
+    obj.y = prev.y + (next.y - prev.y) * t;
+    obj.w = prev.w + (next.w - prev.w) * t;
+    obj.h = prev.h + (next.h - prev.h) * t;
+    obj.rotation = prev.rotation + (next.rotation - prev.rotation) * t;
+    obj.scaleX = prev.scaleX + (next.scaleX - prev.scaleX) * t;
+    obj.scaleY = prev.scaleY + (next.scaleY - prev.scaleY) * t;
+  });
+}
+
+function updatePlayhead() {
+  playhead.style.left = (currentFrame * 10) + "px";
+  playhead.style.top = timeline.offsetTop + "px";
+  playhead.style.position = "absolute";
+}
+
+// Receive symbol image from popup
 window.receiveSymbol = function(dataURL) {
-  // Add to symbol library array
   symbolLibrary.push(dataURL);
   updateSymbolLibrary();
 
-  // Also add the symbol to the stage directly
   const img = new Image();
   img.src = dataURL;
   img.onload = () => {
-    const obj = { id: Date.now(), x: 100, y: 100, w: img.width/2, h: img.height/2, image: img, color: null };
+    const obj = { 
+      id: Date.now(), x: 100, y: 100, w: img.width / 2, h: img.height / 2,
+      rotation: 0, scaleX:1, scaleY:1, image: img, color: null,
+    };
     objects.push(obj);
     keyframes[obj.id] = [];
     selected = obj;
@@ -178,106 +404,40 @@ window.receiveSymbol = function(dataURL) {
   };
 };
 
-
-// Dragging objects
-canvas.onmousedown = e => {
-  const mx = e.offsetX, my = e.offsetY;
-  selected = objects.find(o => mx > o.x && mx < o.x+o.w && my > o.y && my < o.y+o.h);
-  if (selected) {
-    dragging = true;
-    offsetX = mx - selected.x;
-    offsetY = my - selected.y;
-  }
-};
-canvas.onmousemove = e => { if (dragging && selected) { selected.x = e.offsetX - offsetX; selected.y = e.offsetY - offsetY; draw(); } };
-canvas.onmouseup = () => dragging = false;
-
-// Keyframe
-document.getElementById("addKey").onclick = () => {
-  if (!selected) return;
-  let kfs = keyframes[selected.id].filter(k => k.frame !== currentFrame);
-  kfs.push({ frame: currentFrame, x: selected.x, y: selected.y });
-  keyframes[selected.id] = kfs;
-  renderKeyframes();
-};
-
-function renderKeyframes() {
-  document.querySelectorAll(".keyframe").forEach(e => e.remove());
-  for (const id in keyframes) {
-    keyframes[id].forEach(kf => {
-      const dot = document.createElement("div");
-      dot.className = "keyframe";
-      dot.style.left = (kf.frame * 10 + 1) + "px";
-      dot.onclick = () => { 
-        currentFrame = kf.frame; 
-        const obj = objects.find(o => o.id == id); 
-        obj.x = kf.x; obj.y = kf.y; 
-        updatePlayhead(); draw(); 
+function updateSymbolLibrary() {
+  symbolLibraryDiv.querySelectorAll("img").forEach(img => img.remove());
+  symbolLibrary.forEach((dataURL, index) => {
+    const img = new Image();
+    img.src = dataURL;
+    img.title = `Symbol ${index+1}`;
+    img.onclick = () => {
+      const symbolImg = new Image();
+      symbolImg.src = dataURL;
+      symbolImg.onload = () => {
+        const obj = { 
+          id: Date.now(), x: 100, y: 100, w: symbolImg.width/2, h: symbolImg.height/2,
+          rotation: 0, scaleX: 1, scaleY: 1, image: symbolImg, color: null
+        };
+        objects.push(obj);
+        keyframes[obj.id] = [];
+        selected = obj;
+        draw();
       };
-      timeline.appendChild(dot);
-    });
-  }
-}
-
-// Play animation
-document.getElementById("play").onclick = () => {
-  if (isPlaying) return;
-  isPlaying = true;
-  let f = 0;
-  (function loop(){
-    if (f >= frames) { isPlaying = false; return; }
-    currentFrame = f;
-    updateObjects(f);
-    updatePlayhead();
-    draw();
-    f++;
-    requestAnimationFrame(loop);
-  })();
-};
-
-function updateObjects(frame) {
-  objects.forEach(o => {
-    const keys = keyframes[o.id];
-    if (!keys || keys.length === 0) return;
-    if (keys.length === 1) { o.x = keys[0].x; o.y = keys[0].y; }
-    else {
-      let prev = keys[0], next = keys[keys.length - 1];
-      for (let i = 0; i < keys.length - 1; i++) {
-        if (frame >= keys[i].frame && frame <= keys[i+1].frame) { prev = keys[i]; next = keys[i+1]; break; }
-      }
-      const t = (frame - prev.frame) / (next.frame - prev.frame || 1);
-      o.x = prev.x + (next.x - prev.x) * t;
-      o.y = prev.y + (next.y - prev.y) * t;
-    }
+    };
+    img.style.width = "60px";
+    img.style.height = "60px";
+    img.style.objectFit = "contain";
+    img.style.cursor = "pointer";
+    img.style.border = "2px solid transparent";
+    img.style.borderRadius = "4px";
+    img.onmouseenter = () => img.style.borderColor = "yellow";
+    img.onmouseleave = () => img.style.borderColor = "transparent";
+    symbolLibraryDiv.appendChild(img);
   });
 }
 
-function updatePlayhead() { playhead.style.left = (currentFrame * 10) + "px"; }
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  objects.forEach(o => {
-    if (o.image) ctx.drawImage(o.image, o.x, o.y, o.w, o.h);
-    else { ctx.fillStyle = o.color; ctx.fillRect(o.x, o.y, o.w, o.h); }
-    if (o === selected) { ctx.strokeStyle = "#fff"; ctx.strokeRect(o.x-2, o.y-2, o.w+4, o.h+4); }
-  });
-}
 draw();
-
-// Playhead dragging
-let draggingPlayhead = false;
-playhead.onmousedown = () => draggingPlayhead = true;
-document.onmouseup = () => draggingPlayhead = false;
-document.onmousemove = e => {
-  if (!draggingPlayhead) return;
-  const rect = timeline.getBoundingClientRect();
-  let x = e.clientX - rect.left;
-  x = Math.max(0, Math.min(x, rect.width));
-  currentFrame = Math.round(x / 10);
-  updatePlayhead();
-  updateObjects(currentFrame);
-  draw();
-};
 </script>
+
 </body>
 </html>
