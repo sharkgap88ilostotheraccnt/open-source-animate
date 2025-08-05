@@ -60,10 +60,11 @@ document.getElementById("addObj").onclick = () => {
   draw();
 };
 
-// Open symbol editor
 document.getElementById("createSymbol").onclick = () => {
   const win = window.open("", "SymbolEditor", "width=500,height=500");
-  const popupHTML = `
+
+  // Write only the HTML, no inline <script>
+  win.document.write(`
     <html>
     <head>
       <title>Draw Symbol</title>
@@ -77,28 +78,34 @@ document.getElementById("createSymbol").onclick = () => {
       <h3>Draw Symbol</h3>
       <canvas id="symbolCanvas" width="400" height="400"></canvas><br>
       <button id="save">Save Symbol</button>
-      <script>
-        const c = document.getElementById("symbolCanvas");
-        const cx = c.getContext("2d");
-        cx.lineWidth = 2;
-        cx.lineCap = "round";
-        let drawing = false;
-
-        c.onmousedown = e => { drawing = true; cx.beginPath(); cx.moveTo(e.offsetX, e.offsetY); };
-        c.onmousemove = e => { if (drawing) { cx.lineTo(e.offsetX, e.offsetY); cx.stroke(); } };
-        c.onmouseup = () => drawing = false;
-
-        document.getElementById("save").onclick = () => {
-          const data = c.toDataURL();
-          window.opener.receiveSymbol(data);
-          window.close();
-        };
-      <\\/script>
     </body>
     </html>
-  `;
-  win.document.write(popupHTML);
+  `);
+
+  // After the popup loads, inject the script
+  win.onload = () => {
+    const script = win.document.createElement("script");
+    script.textContent = `
+      const c = document.getElementById("symbolCanvas");
+      const cx = c.getContext("2d");
+      cx.lineWidth = 2;
+      cx.lineCap = "round";
+      let drawing = false;
+
+      c.addEventListener("mousedown", e => { drawing = true; cx.beginPath(); cx.moveTo(e.offsetX, e.offsetY); });
+      c.addEventListener("mousemove", e => { if (drawing) { cx.lineTo(e.offsetX, e.offsetY); cx.stroke(); } });
+      c.addEventListener("mouseup", () => drawing = false);
+
+      document.getElementById("save").onclick = () => {
+        const data = c.toDataURL();
+        window.opener.receiveSymbol(data);
+        window.close();
+      };
+    `;
+    win.document.body.appendChild(script);
+  };
 };
+
 
 
 // Receive symbol from popup
