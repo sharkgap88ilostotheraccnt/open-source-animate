@@ -40,6 +40,42 @@ let currentFrame = 0;
 let keyframes = {}; // object.id => [{frame, x, y}]
 let isPlaying = false;
 
+let isDraggingPlayhead = false;
+
+playhead.addEventListener('mousedown', (e) => {
+  isDraggingPlayhead = true;
+  e.preventDefault();
+});
+
+window.addEventListener('mouseup', () => {
+  isDraggingPlayhead = false;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDraggingPlayhead) return;
+
+  // Get timeline position and width
+  const timelineRect = timeline.getBoundingClientRect();
+
+  // Calculate new playhead left position relative to timeline
+  let newLeft = e.clientX - timelineRect.left;
+
+  // Clamp within timeline bounds
+  newLeft = Math.max(0, Math.min(newLeft, timelineRect.width));
+
+  // Snap to nearest frame (assuming 10px per frame)
+  const snappedFrame = Math.round(newLeft / 10);
+  currentFrame = snappedFrame;
+
+  // Move playhead visually
+  playhead.style.left = snappedFrame * 10 + 'px';
+
+  // Update objects on canvas for current frame
+  updateObjectsForFrame(currentFrame);
+  draw();
+});
+
+  
 function initTimeline() {
   timeline.innerHTML = "";
   // Add frames visually
