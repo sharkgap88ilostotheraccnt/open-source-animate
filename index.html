@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Mini Animate with Timeline (Fixed)</title>
+<title>Mini Animate with Draggable Playhead</title>
 <style>
   body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
   canvas { background: #333; margin-top: 10px; cursor: move; display:block; margin:auto; }
   button { margin: 5px; padding: 5px 10px; }
-  #timeline { width: 600px; height: 60px; background: #444; margin: 10px auto; position: relative; }
+  #timeline { width: 600px; height: 60px; background: #444; margin: 10px auto; position: relative; user-select:none; }
   .frame { width: 10px; height: 100%; border-right: 1px solid #555; float: left; }
   .keyframe { width: 8px; height: 8px; background: yellow; position: absolute; top: 25px; cursor: pointer; border-radius: 50%; }
-  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; left: 0; }
+  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; left: 0; cursor: pointer; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
-<h2>Mini Animate (with Timeline) — Fixed</h2>
+<h2>Mini Animate with Draggable Playhead</h2>
 <button id="addObj">➕ Add Object</button>
 <button id="addKey">🎬 Add Keyframe</button>
 <button id="play">▶️ Play</button>
@@ -40,51 +39,13 @@ let currentFrame = 0;
 let keyframes = {}; // object.id => [{frame, x, y}]
 let isPlaying = false;
 
-let isDraggingPlayhead = false;
-
-playhead.addEventListener('mousedown', (e) => {
-  isDraggingPlayhead = true;
-  e.preventDefault();
-});
-
-window.addEventListener('mouseup', () => {
-  isDraggingPlayhead = false;
-});
-
-window.addEventListener('mousemove', (e) => {
-  if (!isDraggingPlayhead) return;
-
-  // Get timeline position and width
-  const timelineRect = timeline.getBoundingClientRect();
-
-  // Calculate new playhead left position relative to timeline
-  let newLeft = e.clientX - timelineRect.left;
-
-  // Clamp within timeline bounds
-  newLeft = Math.max(0, Math.min(newLeft, timelineRect.width));
-
-  // Snap to nearest frame (assuming 10px per frame)
-  const snappedFrame = Math.round(newLeft / 10);
-  currentFrame = snappedFrame;
-
-  // Move playhead visually
-  playhead.style.left = snappedFrame * 10 + 'px';
-
-  // Update objects on canvas for current frame
-  updateObjectsForFrame(currentFrame);
-  draw();
-});
-
-  
 function initTimeline() {
   timeline.innerHTML = "";
-  // Add frames visually
   for (let i = 0; i < frames; i++) {
     const div = document.createElement("div");
     div.className = "frame";
     timeline.appendChild(div);
   }
-  // Add playhead last (to be on top)
   timeline.appendChild(playhead);
 }
 initTimeline();
@@ -98,7 +59,7 @@ document.getElementById("addObj").onclick = () => {
   draw();
 };
 
-// Dragging
+// Dragging objects on canvas
 canvas.onmousedown = e => {
   const mx = e.offsetX, my = e.offsetY;
   selected = objects.find(o => mx > o.x && mx < o.x+o.w && my > o.y && my < o.y+o.h);
@@ -123,7 +84,6 @@ canvas.onmouseup = () => dragging = false;
 document.getElementById("addKey").onclick = () => {
   if (selected) {
     let kfs = keyframes[selected.id];
-    // Remove any existing keyframe on currentFrame for this object
     kfs = kfs.filter(kf => kf.frame !== currentFrame);
     kfs.push({ frame: currentFrame, x: selected.x, y: selected.y });
     keyframes[selected.id] = kfs;
@@ -132,7 +92,6 @@ document.getElementById("addKey").onclick = () => {
 };
 
 function renderKeyframes() {
-  // Remove all existing keyframe dots first
   document.querySelectorAll(".keyframe").forEach(el => el.remove());
   for (const objId in keyframes) {
     keyframes[objId].forEach(kf => {
@@ -179,8 +138,7 @@ function updateObjectsForFrame(frame) {
       obj.x = keys[0].x;
       obj.y = keys[0].y;
     } else if (keys.length >= 2) {
-      // Find surrounding keyframes
-      let prev = keys[0], next = keys[keys.length-1];
+      let prev = keys[0], next = keys[keys.length - 1];
       for (let i = 0; i < keys.length - 1; i++) {
         if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
           prev = keys[i];
@@ -199,6 +157,7 @@ function updateObjectsForFrame(frame) {
 function updatePlayhead() {
   playhead.style.left = (currentFrame * 10) + "px";
 }
+updatePlayhead();
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -208,11 +167,39 @@ function draw() {
     if (o === selected) {
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 2;
-      ctx.strokeRect(o.x-2, o.y-2, o.w+4, o.h+4);
+      ctx.strokeRect(o.x - 2, o.y - 2, o.w + 4, o.h + 4);
     }
   });
 }
 draw();
+
+// Playhead drag logic
+let isDraggingPlayhead = false;
+
+playhead.addEventListener('mousedown', e => {
+  isDraggingPlayhead = true;
+  e.preventDefault();
+});
+
+window.addEventListener('mouseup', e => {
+  isDraggingPlayhead = false;
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isDraggingPlayhead) return;
+
+  const timelineRect = timeline.getBoundingClientRect();
+  let newLeft = e.clientX - timelineRect.left;
+
+  newLeft = Math.max(0, Math.min(newLeft, timelineRect.width));
+
+  const snappedFrame = Math.round(newLeft / 10);
+  currentFrame = snappedFrame;
+
+  updatePlayhead();
+  updateObjectsForFrame(currentFrame);
+  draw();
+});
 </script>
 </body>
 </html>
