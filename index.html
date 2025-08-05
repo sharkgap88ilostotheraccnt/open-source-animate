@@ -21,6 +21,22 @@
 <button id="play">▶️ Play</button>
 <canvas id="canvas" width="600" height="400"></canvas>
 
+  <div id="symbolLibrary" style="
+  width: 600px; 
+  margin: 10px auto; 
+  background: #444; 
+  color: white; 
+  padding: 10px;
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 10px;
+  border-radius: 5px;
+  user-select:none;
+">
+  <strong>Symbol Library:</strong>
+</div>
+
+  
 <div id="timeline">
   <div id="playhead"></div>
 </div>
@@ -40,6 +56,51 @@ let currentFrame = 0;
 let keyframes = {};
 let isPlaying = false;
 
+const symbolLibraryDiv = document.getElementById("symbolLibrary");
+const symbolLibrary = []; // Array to hold symbol images (data URLs)
+
+function updateSymbolLibrary() {
+  // Clear current thumbnails except the label
+  symbolLibraryDiv.querySelectorAll("img").forEach(img => img.remove());
+  
+  symbolLibrary.forEach((dataURL, index) => {
+    const img = new Image();
+    img.src = dataURL;
+    img.title = `Symbol ${index + 1}`;
+    img.style.width = "60px";
+    img.style.height = "60px";
+    img.style.objectFit = "contain";
+    img.style.cursor = "pointer";
+    img.style.border = "2px solid transparent";
+    img.onmouseenter = () => img.style.borderColor = "yellow";
+    img.onmouseleave = () => img.style.borderColor = "transparent";
+    
+    img.onclick = () => {
+      // Create a new object instance on the stage using this symbol image
+      const symbolImg = new Image();
+      symbolImg.src = dataURL;
+      symbolImg.onload = () => {
+        const obj = { 
+          id: Date.now(), 
+          x: 100, 
+          y: 100, 
+          w: symbolImg.width / 2, 
+          h: symbolImg.height / 2, 
+          image: symbolImg, 
+          color: null 
+        };
+        objects.push(obj);
+        keyframes[obj.id] = [];
+        selected = obj;
+        draw();
+      };
+    };
+    symbolLibraryDiv.appendChild(img);
+  });
+}
+
+
+  
 function initTimeline() {
   timeline.innerHTML = "";
   for (let i = 0; i < frames; i++) {
