@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Mini Animate with Draggable Playhead</title>
+<title>Mini Animate with Symbols</title>
 <style>
   body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
   canvas { background: #333; margin-top: 10px; cursor: move; display:block; margin:auto; }
@@ -14,8 +14,9 @@
 </style>
 </head>
 <body>
-<h2>Mini Animate with Draggable Playhead</h2>
-<button id="addObj">➕ Add Object</button>
+<h2>Mini Animate with Timeline + Symbol Drawing</h2>
+<button id="addObj">➕ Add Rectangle</button>
+<button id="createSymbol">🎨 New Symbol</button>
 <button id="addKey">🎬 Add Keyframe</button>
 <button id="play">▶️ Play</button>
 <canvas id="canvas" width="600" height="400"></canvas>
@@ -36,7 +37,7 @@ let dragging = false;
 let offsetX, offsetY;
 let frames = 60;
 let currentFrame = 0;
-let keyframes = {}; // object.id => [{frame, x, y}]
+let keyframes = {}; 
 let isPlaying = false;
 
 function initTimeline() {
@@ -50,16 +51,80 @@ function initTimeline() {
 }
 initTimeline();
 
-// Add new object
+// Add rectangle
 document.getElementById("addObj").onclick = () => {
-  const obj = { id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)` };
+  const obj = { id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)`, image: null };
   objects.push(obj);
   keyframes[obj.id] = [];
   selected = obj;
   draw();
 };
 
-// Dragging objects on canvas
+// Open symbol editor
+document.getElementById("createSymbol").onclick = () => {
+  const symbolWindow = window.open("", "SymbolEditor", "width=500,height=500");
+  symbolWindow.document.write(`
+    <html>
+    <head>
+      <title>Symbol Editor</title>
+      <style>
+        body { background: #222; color: white; text-align: center; }
+        canvas { background: white; display:block; margin:auto; border:1px solid #333; cursor: crosshair; }
+        button { margin-top: 10px; }
+      </style>
+    </head>
+    <body>
+      <h3>Draw Symbol</h3>
+      <canvas id="symbolCanvas" width="400" height="400"></canvas><br>
+      <button id="saveSymbol">Save Symbol</button>
+      <script>
+        const canvas = document.getElementById("symbolCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        let drawing = false;
+
+        canvas.addEventListener("mousedown", e => { drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
+        canvas.addEventListener("mousemove", e => { 
+          if (!drawing) return; 
+          ctx.lineTo(e.offsetX, e.offsetY); 
+          ctx.stroke(); 
+        });
+        canvas.addEventListener("mouseup", () => drawing = false);
+
+        document.getElementById("saveSymbol").onclick = () => {
+          const dataURL = canvas.toDataURL("image/png");
+          window.opener.receiveSymbol(dataURL);
+          window.close();
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+};
+
+// Receive symbol
+window.receiveSymbol = function(dataURL) {
+  const img = new Image();
+  img.src = dataURL;
+  img.onload = () => {
+    const obj = { 
+      id: Date.now(), 
+      x: 100, 
+      y: 100, 
+      w: img.width / 2, 
+      h: img.height / 2, 
+      image: img, 
+      color: null 
+    };
+    objects.push(obj);
+    keyframes[obj.id] = [];
+    selected = obj;
+    draw();
+  };
+};
+
+// Dragging objects
 canvas.onmousedown = e => {
   const mx = e.offsetX, my = e.offsetY;
   selected = objects.find(o => mx > o.x && mx < o.x+o.w && my > o.y && my < o.y+o.h);
@@ -98,7 +163,7 @@ function renderKeyframes() {
       const dot = document.createElement("div");
       dot.className = "keyframe";
       dot.style.left = (kf.frame * 10 + 1) + "px";
-      dot.title = `Frame: ${kf.frame}`;
+      dot.title = \`Frame: \${kf.frame}\`;
       dot.onclick = () => {
         currentFrame = kf.frame;
         const obj = objects.find(o => o.id == objId);
@@ -162,8 +227,12 @@ updatePlayhead();
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   objects.forEach(o => {
-    ctx.fillStyle = o.color;
-    ctx.fillRect(o.x, o.y, o.w, o.h);
+    if (o.image) {
+      ctx.drawImage(o.image, o.x, o.y, o.w, o.h);
+    } else {
+      ctx.fillStyle = o.color;
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+    }
     if (o === selected) {
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 2;
@@ -181,19 +250,19 @@ playhead.addEventListener('mousedown', e => {
   e.preventDefault();
 });
 
-window.addEventListener('mouseup', e => {
+document.addEventListener('mouseup', () => {
   isDraggingPlayhead = false;
 });
 
-window.addEventListener('mousemove', e => {
+document.addEventListener('mousemove', (e) => {
   if (!isDraggingPlayhead) return;
 
   const timelineRect = timeline.getBoundingClientRect();
   let newLeft = e.clientX - timelineRect.left;
 
-  newLeft = Math.max(0, Math.min(newLeft, timelineRect.width));
+  newLeft = Math.max(-50, Math.min(newLeft, timelineRect.width + 50));
 
-  const snappedFrame = Math.round(newLeft / 10);
+  const snappedFrame = Math.max(0, Math.min(frames - 1, Math.round(newLeft / 10)));
   currentFrame = snappedFrame;
 
   updatePlayhead();
