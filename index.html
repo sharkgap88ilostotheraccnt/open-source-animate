@@ -148,6 +148,13 @@ let symbolLibrary = []; // holds image data URLs
 
 let currentTool = "move";
 
+  function updatePlayhead() {
+  const timelineWidth = timeline.clientWidth;
+  const pos = (currentFrame / (frames - 1)) * timelineWidth;
+  playhead.style.left = pos + "px";
+  playhead.style.top = "0";
+}
+
 // Timeline playhead
 const playhead = document.createElement("div");
 playhead.id = "playhead";
@@ -163,6 +170,30 @@ function initTimeline() {
   timeline.appendChild(playhead);
 }
 initTimeline();
+
+  let scrubDragging = false;
+
+timeline.addEventListener("mousedown", (e) => {
+  scrubDragging = true;
+  movePlayhead(e);
+});
+
+timeline.addEventListener("mousemove", (e) => {
+  if (scrubDragging) movePlayhead(e);
+});
+
+window.addEventListener("mouseup", () => scrubDragging = false);
+
+function movePlayhead(e) {
+  const rect = timeline.getBoundingClientRect();
+  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+  const frame = Math.floor((x / rect.width) * frames);
+  currentFrame = frame;
+  updatePlayhead();
+  updateObjectsForFrame(frame);
+  draw();
+}
+
 
 // Buttons
 document.getElementById("addObj").onclick = () => {
