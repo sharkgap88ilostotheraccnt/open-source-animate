@@ -15,6 +15,7 @@
 </head>
 <body>
 <h2>Mini Animate (Fixed)</h2>
+<button id="deleteObj">🗑️ Delete Selected</button>
 <button id="addObj">➕ Rectangle</button>
 <button id="createSymbol">🎨 New Symbol</button>
 <button id="addKey">🎬 Keyframe</button>
@@ -63,6 +64,7 @@ let isPlaying = false;
 const symbolLibraryDiv = document.getElementById("symbolLibrary");
 const symbolLibrary = []; // Array to hold symbol images (data URLs)
 
+  
 function updateSymbolLibrary() {
   // Clear current thumbnails except the label
   symbolLibraryDiv.querySelectorAll("img").forEach(img => img.remove());
@@ -128,7 +130,18 @@ document.getElementById("createSymbol").onclick = () => {
   window.open("symbol-editor.html", "SymbolEditor", "width=500,height=500");
 };
 
+document.getElementById("deleteObj").onclick = () => {
+  if (!selected) return;
+  // Remove selected object from objects array
+  objects = objects.filter(o => o !== selected);
+  // Remove keyframes
+  delete keyframes[selected.id];
+  selected = null;
+  draw();
+  renderKeyframes();
+};
 
+  
 window.receiveSymbol = function(dataURL) {
   // Add to symbol library array
   symbolLibrary.push(dataURL);
