@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Mini Animate with Symbols</title>
+<title>Mini Animate Fixed</title>
 <style>
   body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
   canvas { background: #333; margin-top: 10px; cursor: move; display:block; margin:auto; }
@@ -14,10 +14,10 @@
 </style>
 </head>
 <body>
-<h2>Mini Animate with Timeline + Symbol Drawing</h2>
-<button id="addObj">➕ Add Rectangle</button>
+<h2>Mini Animate (Fixed)</h2>
+<button id="addObj">➕ Rectangle</button>
 <button id="createSymbol">🎨 New Symbol</button>
-<button id="addKey">🎬 Add Keyframe</button>
+<button id="addKey">🎬 Keyframe</button>
 <button id="play">▶️ Play</button>
 <canvas id="canvas" width="600" height="400"></canvas>
 
@@ -37,7 +37,7 @@ let dragging = false;
 let offsetX, offsetY;
 let frames = 60;
 let currentFrame = 0;
-let keyframes = {}; 
+let keyframes = {};
 let isPlaying = false;
 
 function initTimeline() {
@@ -62,39 +62,35 @@ document.getElementById("addObj").onclick = () => {
 
 // Open symbol editor
 document.getElementById("createSymbol").onclick = () => {
-  const symbolWindow = window.open("", "SymbolEditor", "width=500,height=500");
-  symbolWindow.document.write(`
+  const win = window.open("", "SymbolEditor", "width=500,height=500");
+  win.document.write(`
     <html>
     <head>
-      <title>Symbol Editor</title>
+      <title>Draw Symbol</title>
       <style>
         body { background: #222; color: white; text-align: center; }
-        canvas { background: white; display:block; margin:auto; border:1px solid #333; cursor: crosshair; }
+        canvas { background: white; border:1px solid black; display:block; margin:auto; cursor:crosshair; }
         button { margin-top: 10px; }
       </style>
     </head>
     <body>
       <h3>Draw Symbol</h3>
       <canvas id="symbolCanvas" width="400" height="400"></canvas><br>
-      <button id="saveSymbol">Save Symbol</button>
+      <button id="save">Save Symbol</button>
       <script>
-        const canvas = document.getElementById("symbolCanvas");
-        const ctx = canvas.getContext("2d");
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
+        const c = document.getElementById("symbolCanvas");
+        const cx = c.getContext("2d");
+        cx.lineWidth = 2;
+        cx.lineCap = "round";
         let drawing = false;
 
-        canvas.addEventListener("mousedown", e => { drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
-        canvas.addEventListener("mousemove", e => { 
-          if (!drawing) return; 
-          ctx.lineTo(e.offsetX, e.offsetY); 
-          ctx.stroke(); 
-        });
-        canvas.addEventListener("mouseup", () => drawing = false);
+        c.onmousedown = e => { drawing = true; cx.beginPath(); cx.moveTo(e.offsetX, e.offsetY); };
+        c.onmousemove = e => { if (drawing) { cx.lineTo(e.offsetX, e.offsetY); cx.stroke(); } };
+        c.onmouseup = () => drawing = false;
 
-        document.getElementById("saveSymbol").onclick = () => {
-          const dataURL = canvas.toDataURL("image/png");
-          window.opener.receiveSymbol(dataURL);
+        document.getElementById("save").onclick = () => {
+          const data = c.toDataURL();
+          window.opener.receiveSymbol(data);
           window.close();
         };
       <\/script>
@@ -103,20 +99,12 @@ document.getElementById("createSymbol").onclick = () => {
   `);
 };
 
-// Receive symbol
+// Receive symbol from popup
 window.receiveSymbol = function(dataURL) {
   const img = new Image();
   img.src = dataURL;
   img.onload = () => {
-    const obj = { 
-      id: Date.now(), 
-      x: 100, 
-      y: 100, 
-      w: img.width / 2, 
-      h: img.height / 2, 
-      image: img, 
-      color: null 
-    };
+    const obj = { id: Date.now(), x: 100, y: 100, w: img.width/2, h: img.height/2, image: img, color: null };
     objects.push(obj);
     keyframes[obj.id] = [];
     selected = obj;
@@ -134,43 +122,30 @@ canvas.onmousedown = e => {
     offsetY = my - selected.y;
   }
 };
-
-canvas.onmousemove = e => {
-  if (dragging && selected) {
-    selected.x = e.offsetX - offsetX;
-    selected.y = e.offsetY - offsetY;
-    draw();
-  }
-};
-
+canvas.onmousemove = e => { if (dragging && selected) { selected.x = e.offsetX - offsetX; selected.y = e.offsetY - offsetY; draw(); } };
 canvas.onmouseup = () => dragging = false;
 
-// Add Keyframe
+// Keyframe
 document.getElementById("addKey").onclick = () => {
-  if (selected) {
-    let kfs = keyframes[selected.id];
-    kfs = kfs.filter(kf => kf.frame !== currentFrame);
-    kfs.push({ frame: currentFrame, x: selected.x, y: selected.y });
-    keyframes[selected.id] = kfs;
-    renderKeyframes();
-  }
+  if (!selected) return;
+  let kfs = keyframes[selected.id].filter(k => k.frame !== currentFrame);
+  kfs.push({ frame: currentFrame, x: selected.x, y: selected.y });
+  keyframes[selected.id] = kfs;
+  renderKeyframes();
 };
 
 function renderKeyframes() {
-  document.querySelectorAll(".keyframe").forEach(el => el.remove());
-  for (const objId in keyframes) {
-    keyframes[objId].forEach(kf => {
+  document.querySelectorAll(".keyframe").forEach(e => e.remove());
+  for (const id in keyframes) {
+    keyframes[id].forEach(kf => {
       const dot = document.createElement("div");
       dot.className = "keyframe";
       dot.style.left = (kf.frame * 10 + 1) + "px";
-      dot.title = \`Frame: \${kf.frame}\`;
-      dot.onclick = () => {
-        currentFrame = kf.frame;
-        const obj = objects.find(o => o.id == objId);
-        obj.x = kf.x;
-        obj.y = kf.y;
-        draw();
-        updatePlayhead();
+      dot.onclick = () => { 
+        currentFrame = kf.frame; 
+        const obj = objects.find(o => o.id == id); 
+        obj.x = kf.x; obj.y = kf.y; 
+        updatePlayhead(); draw(); 
       };
       timeline.appendChild(dot);
     });
@@ -181,94 +156,61 @@ function renderKeyframes() {
 document.getElementById("play").onclick = () => {
   if (isPlaying) return;
   isPlaying = true;
-  let frame = 0;
-  function animate() {
-    if (frame >= frames) { isPlaying = false; return; }
-    currentFrame = frame;
-    updateObjectsForFrame(frame);
-    draw();
+  let f = 0;
+  (function loop(){
+    if (f >= frames) { isPlaying = false; return; }
+    currentFrame = f;
+    updateObjects(f);
     updatePlayhead();
-    frame++;
-    requestAnimationFrame(animate);
-  }
-  animate();
+    draw();
+    f++;
+    requestAnimationFrame(loop);
+  })();
 };
 
-function updateObjectsForFrame(frame) {
-  objects.forEach(obj => {
-    const keys = keyframes[obj.id];
+function updateObjects(frame) {
+  objects.forEach(o => {
+    const keys = keyframes[o.id];
     if (!keys || keys.length === 0) return;
-
-    if (keys.length === 1) {
-      obj.x = keys[0].x;
-      obj.y = keys[0].y;
-    } else if (keys.length >= 2) {
+    if (keys.length === 1) { o.x = keys[0].x; o.y = keys[0].y; }
+    else {
       let prev = keys[0], next = keys[keys.length - 1];
       for (let i = 0; i < keys.length - 1; i++) {
-        if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
-          prev = keys[i];
-          next = keys[i+1];
-          break;
-        }
+        if (frame >= keys[i].frame && frame <= keys[i+1].frame) { prev = keys[i]; next = keys[i+1]; break; }
       }
-      const frameDiff = next.frame - prev.frame;
-      const t = frameDiff === 0 ? 0 : (frame - prev.frame) / frameDiff;
-      obj.x = prev.x + (next.x - prev.x) * t;
-      obj.y = prev.y + (next.y - prev.y) * t;
+      const t = (frame - prev.frame) / (next.frame - prev.frame || 1);
+      o.x = prev.x + (next.x - prev.x) * t;
+      o.y = prev.y + (next.y - prev.y) * t;
     }
   });
 }
 
-function updatePlayhead() {
-  playhead.style.left = (currentFrame * 10) + "px";
-}
-updatePlayhead();
+function updatePlayhead() { playhead.style.left = (currentFrame * 10) + "px"; }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   objects.forEach(o => {
-    if (o.image) {
-      ctx.drawImage(o.image, o.x, o.y, o.w, o.h);
-    } else {
-      ctx.fillStyle = o.color;
-      ctx.fillRect(o.x, o.y, o.w, o.h);
-    }
-    if (o === selected) {
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(o.x - 2, o.y - 2, o.w + 4, o.h + 4);
-    }
+    if (o.image) ctx.drawImage(o.image, o.x, o.y, o.w, o.h);
+    else { ctx.fillStyle = o.color; ctx.fillRect(o.x, o.y, o.w, o.h); }
+    if (o === selected) { ctx.strokeStyle = "#fff"; ctx.strokeRect(o.x-2, o.y-2, o.w+4, o.h+4); }
   });
 }
 draw();
 
-// Playhead drag logic
-let isDraggingPlayhead = false;
-
-playhead.addEventListener('mousedown', e => {
-  isDraggingPlayhead = true;
-  e.preventDefault();
-});
-
-document.addEventListener('mouseup', () => {
-  isDraggingPlayhead = false;
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (!isDraggingPlayhead) return;
-
-  const timelineRect = timeline.getBoundingClientRect();
-  let newLeft = e.clientX - timelineRect.left;
-
-  newLeft = Math.max(-50, Math.min(newLeft, timelineRect.width + 50));
-
-  const snappedFrame = Math.max(0, Math.min(frames - 1, Math.round(newLeft / 10)));
-  currentFrame = snappedFrame;
-
+// Playhead dragging
+let draggingPlayhead = false;
+playhead.onmousedown = () => draggingPlayhead = true;
+document.onmouseup = () => draggingPlayhead = false;
+document.onmousemove = e => {
+  if (!draggingPlayhead) return;
+  const rect = timeline.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  x = Math.max(0, Math.min(x, rect.width));
+  currentFrame = Math.round(x / 10);
   updatePlayhead();
-  updateObjectsForFrame(currentFrame);
+  updateObjects(currentFrame);
   draw();
-});
+};
 </script>
 </body>
 </html>
