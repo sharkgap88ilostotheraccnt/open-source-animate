@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Mini Animate with Timeline</title>
+<title>Mini Animate with Timeline (Fixed)</title>
 <style>
   body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
   canvas { background: #333; margin-top: 10px; cursor: move; display:block; margin:auto; }
@@ -10,12 +10,12 @@
   #timeline { width: 600px; height: 60px; background: #444; margin: 10px auto; position: relative; }
   .frame { width: 10px; height: 100%; border-right: 1px solid #555; float: left; }
   .keyframe { width: 8px; height: 8px; background: yellow; position: absolute; top: 25px; cursor: pointer; border-radius: 50%; }
-  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; }
+  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; left: 0; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
-<h2>Mini Animate (with Timeline)</h2>
+<h2>Mini Animate (with Timeline) — Fixed</h2>
 <button id="addObj">➕ Add Object</button>
 <button id="addKey">🎬 Add Keyframe</button>
 <button id="play">▶️ Play</button>
@@ -24,7 +24,6 @@
 <div id="timeline">
   <div id="playhead"></div>
 </div>
-
 
 <script>
 const canvas = document.getElementById("canvas");
@@ -43,11 +42,14 @@ let isPlaying = false;
 
 function initTimeline() {
   timeline.innerHTML = "";
-  for (let i=0; i<frames; i++) {
+  // Add frames visually
+  for (let i = 0; i < frames; i++) {
     const div = document.createElement("div");
     div.className = "frame";
     timeline.appendChild(div);
   }
+  // Add playhead last (to be on top)
+  timeline.appendChild(playhead);
 }
 initTimeline();
 
@@ -84,18 +86,24 @@ canvas.onmouseup = () => dragging = false;
 // Add Keyframe
 document.getElementById("addKey").onclick = () => {
   if (selected) {
-    keyframes[selected.id].push({ frame: currentFrame, x: selected.x, y: selected.y });
+    let kfs = keyframes[selected.id];
+    // Remove any existing keyframe on currentFrame for this object
+    kfs = kfs.filter(kf => kf.frame !== currentFrame);
+    kfs.push({ frame: currentFrame, x: selected.x, y: selected.y });
+    keyframes[selected.id] = kfs;
     renderKeyframes();
   }
 };
 
 function renderKeyframes() {
+  // Remove all existing keyframe dots first
   document.querySelectorAll(".keyframe").forEach(el => el.remove());
   for (const objId in keyframes) {
     keyframes[objId].forEach(kf => {
       const dot = document.createElement("div");
       dot.className = "keyframe";
       dot.style.left = (kf.frame * 10 + 1) + "px";
+      dot.title = `Frame: ${kf.frame}`;
       dot.onclick = () => {
         currentFrame = kf.frame;
         const obj = objects.find(o => o.id == objId);
@@ -129,16 +137,23 @@ document.getElementById("play").onclick = () => {
 function updateObjectsForFrame(frame) {
   objects.forEach(obj => {
     const keys = keyframes[obj.id];
-    if (keys.length >= 2) {
+    if (!keys || keys.length === 0) return;
+
+    if (keys.length === 1) {
+      obj.x = keys[0].x;
+      obj.y = keys[0].y;
+    } else if (keys.length >= 2) {
+      // Find surrounding keyframes
       let prev = keys[0], next = keys[keys.length-1];
-      for (let i=0; i<keys.length-1; i++) {
+      for (let i = 0; i < keys.length - 1; i++) {
         if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
           prev = keys[i];
           next = keys[i+1];
           break;
         }
       }
-      const t = (frame - prev.frame) / (next.frame - prev.frame);
+      const frameDiff = next.frame - prev.frame;
+      const t = frameDiff === 0 ? 0 : (frame - prev.frame) / frameDiff;
       obj.x = prev.x + (next.x - prev.x) * t;
       obj.y = prev.y + (next.y - prev.y) * t;
     }
@@ -147,8 +162,6 @@ function updateObjectsForFrame(frame) {
 
 function updatePlayhead() {
   playhead.style.left = (currentFrame * 10) + "px";
-  playhead.style.top = timeline.offsetTop + "px";
-  playhead.style.position = "absolute";
 }
 
 function draw() {
@@ -158,6 +171,7 @@ function draw() {
     ctx.fillRect(o.x, o.y, o.w, o.h);
     if (o === selected) {
       ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
       ctx.strokeRect(o.x-2, o.y-2, o.w+4, o.h+4);
     }
   });
