@@ -4,14 +4,48 @@
 <meta charset="UTF-8" />
 <title>Mini Animate with Transform Tools & Symbol Library</title>
 <style>
-  body { background: #222; color: #fff; font-family: sans-serif; margin:0; }
-  h2 { text-align: center; margin-top: 10px; }
-  button { padding: 5px 10px; cursor: pointer; }
+  body {
+    background: #1c2526;
+    color: #d9d9d9;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    overflow: hidden;
+  }
+  h2 {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 18px;
+    color: #e6e6e6;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  button {
+    padding: 8px;
+    cursor: pointer;
+    background: #2e2e2e;
+    color: #d9d9d9;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: background 0.2s, color 0.2s;
+  }
+  button:hover {
+    background: #4a4a4a;
+    color: #fff;
+  }
+  button.active {
+    background: #0078d7;
+    color: #fff;
+  }
   #mainContainer {
     display: flex;
-    gap: 10px;
-    width: 900px;
+    gap: 8px;
+    width: 1000px;
     margin: 10px auto;
+    background: #252526;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   }
   #canvasAndTimeline {
     flex-grow: 1;
@@ -21,50 +55,76 @@
     background: #333;
     display: block;
     user-select: none;
+    border: 1px solid #444;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   }
   #timeline {
     width: 100%;
-    height: 60px;
-    background: #444;
+    height: 80px;
+    background: #2e2e2e;
     position: relative;
-    user-select:none;
+    user-select: none;
+    border-top: 1px solid #444;
+    margin-top: 8px;
+    border-radius: 4px;
   }
   .frame {
-    width: 10px;
+    width: 12px;
     height: 100%;
     border-right: 1px solid #555;
     float: left;
+    position: relative;
+  }
+  .frame:nth-child(5n)::before {
+    content: attr(data-frame);
+    position: absolute;
+    top: 5px;
+    font-size: 10px;
+    color: #999;
+    text-align: center;
+    width: 12px;
   }
   .keyframe {
     width: 8px;
     height: 8px;
-    background: yellow;
+    background: #ffd700;
     position: absolute;
-    top: 25px;
+    top: 30px;
     cursor: pointer;
     border-radius: 50%;
+    border: 1px solid #000;
+    transition: transform 0.2s;
+  }
+  .keyframe:hover {
+    transform: scale(1.3);
   }
   #playhead {
     width: 2px;
     height: 100%;
-    background: red;
+    background: #ff4d4d;
     position: absolute;
     top: 0;
+    z-index: 10;
   }
   #symbolLibrary {
-    width: 160px; 
-    background: #444; 
-    color: white; 
+    width: 180px;
+    background: #2e2e2e;
+    color: #d9d9d9;
     padding: 10px;
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 10px;
-    border-radius: 5px;
-    user-select:none;
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    overflow-y: auto;
+    gap: 8px;
+    border-radius: 6px;
+    user-select: none;
     max-height: 480px;
+    overflow-y: auto;
+    border: 1px solid #444;
+  }
+  #symbolLibrary strong {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #e6e6e6;
+    margin-bottom: 5px;
   }
   #symbolLibrary img {
     width: 60px;
@@ -73,55 +133,70 @@
     cursor: pointer;
     border: 2px solid transparent;
     border-radius: 4px;
+    background: #333;
+    transition: border-color 0.2s;
   }
   #symbolLibrary img:hover {
-    border-color: yellow;
+    border-color: #ffd700;
   }
   #transformToolbar {
-    width: 100px; 
-    background: #333; 
-    color: white; 
-    padding: 10px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px;
-    border-radius: 5px;
-    user-select:none;
+    width: 60px;
+    background: #2e2e2e;
+    color: #d9d9d9;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 6px;
+    user-select: none;
+    border: 1px solid #444;
+  }
+  #transformToolbar strong {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #e6e6e6;
   }
   #transformToolbar button {
-    cursor: pointer;
+    font-size: 14px;
+    padding: 8px;
+    text-align: center;
+  }
+  #topToolbar {
+    text-align: center;
+    margin: 10px 0;
+    background: #2e2e2e;
+    padding: 8px;
+    border-bottom: 1px solid #444;
   }
 </style>
 </head>
 <body>
 
-<h2>Mini Animate with Transform Tools & Symbol Library</h2>
-
-<div style="text-align:center; margin-bottom:10px;">
-  <button id="addObj">➕ Add Rectangle</button>
-  <button id="addKey">🎬 Add Keyframe</button>
-  <button id="play">▶️ Play</button>
-  <button id="createSymbol">🎨 New Symbol</button>
-  <button id="deleteObj">🗑️ Delete Selected</button>
+<div id="topToolbar">
+  <button id="addObj">Add Rectangle</button>
+  <button id="addKey">Add Keyframe</button>
+  <button id="play">Play</button>
+  <button id="createSymbol">New Symbol</button>
+  <button id="deleteObj">Delete</button>
 </div>
 
 <div id="mainContainer">
+  <div id="transformToolbar">
+    <strong>Tools</strong>
+    <button id="moveTool" title="Move">↔</button>
+    <button id="scaleTool" title="Scale">⬛</button>
+    <button id="rotateTool" title="Rotate">↻</button>
+    <button id="flipH" title="Flip Horizontal">⇆</button>
+    <button id="flipV" title="Flip Vertical">⇅</button>
+  </div>
+
   <div id="canvasAndTimeline">
     <canvas id="canvas" width="600" height="400"></canvas>
     <div id="timeline"></div>
   </div>
 
-  <div id="transformToolbar">
-    <strong>Transforms</strong>
-    <button id="moveTool">🖐️ Move</button>
-    <button id="scaleTool">⬆️ Scale</button>
-    <button id="rotateTool">🔄 Rotate</button>
-    <button id="flipH">⇄ Flip H</button>
-    <button id="flipV">⇅ Flip V</button>
-  </div>
-
   <div id="symbolLibrary">
-    <strong>Symbol Library:</strong>
+    <strong>Library</strong>
   </div>
 </div>
 
@@ -141,37 +216,38 @@ let startRotation;
 
 let frames = 60;
 let currentFrame = 0;
-let keyframes = {}; // obj.id => [{frame,x,y,w,h,rotation,scaleX,scaleY}]
+let keyframes = {};
 let isPlaying = false;
-
-let symbolLibrary = []; // holds image data URLs
+let symbolLibrary = [];
 
 let currentTool = "move";
 
-  function updatePlayhead() {
-  const timelineWidth = timeline.clientWidth;
-  const pos = (currentFrame / (frames - 1)) * timelineWidth;
-  playhead.style.left = pos + "px";
-  playhead.style.top = "0";
-}
-
-// Timeline playhead
-const playhead = document.createElement("div");
-playhead.id = "playhead";
-timeline.appendChild(playhead);
-
+// Initialize timeline
 function initTimeline() {
   timeline.innerHTML = "";
-  for (let i=0; i<frames; i++) {
+  for (let i = 0; i < frames; i++) {
     const div = document.createElement("div");
     div.className = "frame";
+    div.dataset.frame = i;
     timeline.appendChild(div);
   }
   timeline.appendChild(playhead);
 }
 initTimeline();
 
-  let scrubDragging = false;
+// Playhead
+const playhead = document.createElement("div");
+playhead.id = "playhead";
+timeline.appendChild(playhead);
+
+function updatePlayhead() {
+  const timelineWidth = timeline.clientWidth;
+  const pos = (currentFrame / (frames - 1)) * timelineWidth;
+  playhead.style.left = pos + "px";
+}
+
+// Timeline interaction
+let scrubDragging = false;
 
 timeline.addEventListener("mousedown", (e) => {
   scrubDragging = true;
@@ -194,11 +270,11 @@ function movePlayhead(e) {
   draw();
 }
 
-
-// Buttons
+// Toolbar buttons
 document.getElementById("addObj").onclick = () => {
   const obj = { 
-    id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)`,
+    id: Date.now(), x: 100, y: 100, w: 80, h: 80, 
+    color: `hsl(${Math.random()*360},70%,50%)`,
     rotation: 0, scaleX: 1, scaleY: 1, image: null,
   };
   objects.push(obj);
@@ -223,9 +299,9 @@ document.getElementById("addKey").onclick = () => {
 document.getElementById("play").onclick = () => {
   if (isPlaying) return;
   isPlaying = true;
-  let frame = 0;
+  let frame = currentFrame;
   function animate() {
-    if (frame >= frames) { isPlaying = false; return; }
+    if (frame >= frames) { isPlaying = false; currentFrame = 0; updatePlayhead(); draw(); return; }
     currentFrame = frame;
     updateObjectsForFrame(frame);
     draw();
@@ -249,37 +325,37 @@ document.getElementById("createSymbol").onclick = () => {
   window.open("symbol-editor.html", "SymbolEditor", "width=500,height=500");
 };
 
-// Transform tool buttons
+// Transform tools
 document.getElementById("moveTool").onclick = () => { currentTool = "move"; updateToolUI(); };
 document.getElementById("scaleTool").onclick = () => { currentTool = "scale"; updateToolUI(); };
 document.getElementById("rotateTool").onclick = () => { currentTool = "rotate"; updateToolUI(); };
 
 document.getElementById("flipH").onclick = () => {
   if (!selected) return;
-  selected.scaleX = (selected.scaleX === undefined ? 1 : selected.scaleX) * -1;
+  selected.scaleX = (selected.scaleX || 1) * -1;
   draw();
 };
 
 document.getElementById("flipV").onclick = () => {
   if (!selected) return;
-  selected.scaleY = (selected.scaleY === undefined ? 1 : selected.scaleY) * -1;
+  selected.scaleY = (selected.scaleY || 1) * -1;
   draw();
 };
 
 function updateToolUI() {
-  ["moveTool","scaleTool","rotateTool"].forEach(id => {
-    document.getElementById(id).style.backgroundColor = (currentTool === id.replace("Tool","")) ? "#555" : "";
+  ["moveTool", "scaleTool", "rotateTool"].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.classList.toggle("active", currentTool === id.replace("Tool", ""));
   });
 }
 updateToolUI();
 
-// Canvas interaction helpers
+// Canvas interaction
 function pointInObject(x, y, o) {
-  // TODO: more precise with rotation?
+  // Simplified hit detection (no rotation adjustment)
   return x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h;
 }
 
-// Mouse events
 canvas.onmousedown = e => {
   const mx = e.offsetX, my = e.offsetY;
   if (currentTool === "move") {
@@ -332,7 +408,7 @@ canvas.onmousemove = e => {
 
 canvas.onmouseup = () => dragging = false;
 
-// Draw function with transforms and images
+// Draw function
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   objects.forEach(o => {
@@ -349,7 +425,7 @@ function draw() {
       ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
     }
     if (o === selected) {
-      ctx.strokeStyle = "#fff";
+      ctx.strokeStyle = "#ffd700";
       ctx.lineWidth = 2;
       ctx.strokeRect(-o.w/2, -o.h/2, o.w, o.h);
     }
@@ -357,14 +433,14 @@ function draw() {
   });
 }
 
-// Timeline keyframes rendering
+// Timeline keyframes
 function renderKeyframes() {
   document.querySelectorAll(".keyframe").forEach(el => el.remove());
   for (const objId in keyframes) {
     keyframes[objId].forEach(kf => {
       const dot = document.createElement("div");
       dot.className = "keyframe";
-      dot.style.left = (kf.frame * 10 + 1) + "px";
+      dot.style.left = (kf.frame * 12 + 2) + "px";
       dot.onclick = () => {
         currentFrame = kf.frame;
         const obj = objects.find(o => o.id == objId);
@@ -386,13 +462,13 @@ function renderKeyframes() {
   }
 }
 
-// Animate interpolation for frames
+// Frame interpolation
 function updateObjectsForFrame(frame) {
   objects.forEach(obj => {
     const keys = keyframes[obj.id];
     if (!keys || keys.length < 2) return;
     let prev = keys[0], next = keys[keys.length - 1];
-    for (let i=0; i < keys.length -1; i++) {
+    for (let i = 0; i < keys.length - 1; i++) {
       if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
         prev = keys[i];
         next = keys[i+1];
@@ -410,13 +486,7 @@ function updateObjectsForFrame(frame) {
   });
 }
 
-function updatePlayhead() {
-  playhead.style.left = (currentFrame * 10) + "px";
-  playhead.style.top = timeline.offsetTop + "px";
-  playhead.style.position = "absolute";
-}
-
-// Receive symbol image from popup
+// Symbol library
 window.receiveSymbol = function(dataURL) {
   symbolLibrary.push(dataURL);
   updateSymbolLibrary();
@@ -426,7 +496,7 @@ window.receiveSymbol = function(dataURL) {
   img.onload = () => {
     const obj = { 
       id: Date.now(), x: 100, y: 100, w: img.width / 2, h: img.height / 2,
-      rotation: 0, scaleX:1, scaleY:1, image: img, color: null,
+      rotation: 0, scaleX: 1, scaleY: 1, image: img, color: null,
     };
     objects.push(obj);
     keyframes[obj.id] = [];
@@ -455,20 +525,11 @@ function updateSymbolLibrary() {
         draw();
       };
     };
-    img.style.width = "60px";
-    img.style.height = "60px";
-    img.style.objectFit = "contain";
-    img.style.cursor = "pointer";
-    img.style.border = "2px solid transparent";
-    img.style.borderRadius = "4px";
-    img.onmouseenter = () => img.style.borderColor = "yellow";
-    img.onmouseleave = () => img.style.borderColor = "transparent";
     symbolLibraryDiv.appendChild(img);
   });
 }
 
 draw();
 </script>
-
 </body>
 </html>
