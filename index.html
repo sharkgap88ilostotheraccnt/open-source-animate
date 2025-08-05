@@ -63,7 +63,7 @@ document.getElementById("addObj").onclick = () => {
 // Open symbol editor
 document.getElementById("createSymbol").onclick = () => {
   const win = window.open("", "SymbolEditor", "width=500,height=500");
-  win.document.write(`
+  const popupHTML = `
     <html>
     <head>
       <title>Draw Symbol</title>
@@ -93,11 +93,13 @@ document.getElementById("createSymbol").onclick = () => {
           window.opener.receiveSymbol(data);
           window.close();
         };
-      <\/script>
+      <\\/script>
     </body>
     </html>
-  `);
+  `;
+  win.document.write(popupHTML);
 };
+
 
 // Receive symbol from popup
 window.receiveSymbol = function(dataURL) {
