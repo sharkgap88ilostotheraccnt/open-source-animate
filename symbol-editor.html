@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Draw Symbol</title>
+<style>
+  body { background: #222; color: white; text-align: center; }
+  canvas { background: white; border:1px solid black; display:block; margin:auto; cursor:crosshair; }
+  button { margin-top: 10px; }
+</style>
+</head>
+<body>
+  <h3>Draw Symbol</h3>
+  <canvas id="symbolCanvas" width="400" height="400"></canvas><br>
+  <button id="save">Save Symbol</button>
+
+  <script>
+    const c = document.getElementById("symbolCanvas");
+    const cx = c.getContext("2d");
+    cx.lineWidth = 2;
+    cx.lineCap = "round";
+    let drawing = false;
+
+    c.addEventListener("mousedown", e => { drawing = true; cx.beginPath(); cx.moveTo(e.offsetX, e.offsetY); });
+    c.addEventListener("mousemove", e => { if (drawing) { cx.lineTo(e.offsetX, e.offsetY); cx.stroke(); } });
+    c.addEventListener("mouseup", () => drawing = false);
+
+    document.getElementById("save").onclick = () => {
+      const data = c.toDataURL();
+      window.opener.receiveSymbol(data);
+      window.close();
+    };
+  </script>
+</body>
+</html>
