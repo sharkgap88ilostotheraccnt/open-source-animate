@@ -22,6 +22,25 @@
 <button id="play">▶️ Play</button>
 <canvas id="canvas" width="600" height="400"></canvas>
 
+ 
+ <div id="transformToolbar" style="
+  width: 100px; 
+  background: #333; 
+  color: white; 
+  padding: 10px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px;
+  border-radius: 5px;
+  user-select:none;
+">
+  <strong>Transforms</strong>
+  <button id="moveTool">🖐️ Move</button>
+  <button id="scaleTool">⬆️ Scale</button>
+  <button id="rotateTool">🔄 Rotate</button>
+  <button id="flipH">⇄ Flip H</button>
+  <button id="flipV">⇅ Flip V</button>
+</div>
 
   <div id="symbolLibrary" style="
     width: 160px; 
