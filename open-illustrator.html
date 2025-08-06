@@ -79,6 +79,9 @@
   <script>
   const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
   let w, h;
+ let shapes = [], tool = "select", isDrawing=false, startX, startY, current=null, selected=null;
+  let resizing = false, activeHandle = null;
+    
   function resize() {
     w = canvas.width = window.innerWidth - 60;
     h = canvas.height = window.innerHeight - 48;
@@ -87,8 +90,7 @@
   window.addEventListener("resize", resize);
   resize();
 
-  let shapes = [], tool = "select", isDrawing=false, startX, startY, current=null, selected=null;
-  let resizing = false, activeHandle = null;
+ 
   const colorPicker = document.getElementById("colorPicker"), strokeWidthInput = document.getElementById("strokeWidth");
 
   function setTool(name) {
