@@ -80,256 +80,259 @@
   </div>
 
   <script>
-    const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
-    let w, h;
-    function resize() {
-      w = canvas.width = window.innerWidth - 60;
-      h = canvas.height = window.innerHeight - 48;
-      redraw();
-    }
-    window.addEventListener("resize", resize);
-    resize();
+  const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
+  let w, h;
+  let shapes = [], history = [], historyIndex = -1;
+  let tool = "select", isDrawing = false, startX, startY, current = null, selected = null;
+  let resizing = false, activeHandle = null, draggingPoint = null;
+  const colorPicker = document.getElementById("colorPicker"), strokeWidthInput = document.getElementById("strokeWidth");
 
-    let shapes = [], history = [], historyIndex = -1;
-    let tool = "select", isDrawing = false, startX, startY, current = null, selected = null;
-    let resizing = false, activeHandle = null, draggingPoint = null;
-    const colorPicker = document.getElementById("colorPicker"), strokeWidthInput = document.getElementById("strokeWidth");
+  function resize() {
+    w = canvas.width = window.innerWidth - 60;
+    h = canvas.height = window.innerHeight - 48;
+    redraw();
+  }
+  window.addEventListener("resize", resize);
 
-    function saveState() {
-      history = history.slice(0, historyIndex + 1);
-      history.push(JSON.stringify(shapes));
-      historyIndex++;
-    }
+  function saveState() {
+    history = history.slice(0, historyIndex + 1);
+    history.push(JSON.stringify(shapes));
+    historyIndex++;
+  }
 
-    function undo() {
-      if (historyIndex > 0) {
-        historyIndex--;
-        shapes = JSON.parse(history[historyIndex]);
-        selected = null;
-        redraw();
-      }
-    }
-
-    function redo() {
-      if (historyIndex < history.length - 1) {
-        historyIndex++;
-        shapes = JSON.parse(history[historyIndex]);
-        selected = null;
-        redraw();
-      }
-    }
-
-    function setTool(name) {
-      tool = name;
-      document.querySelectorAll("#toolbar button").forEach(b => b.classList.toggle("active", b.id === name + "Tool"));
+  function undo() {
+    if (historyIndex > 0) {
+      historyIndex--;
+      shapes = JSON.parse(history[historyIndex]);
       selected = null;
       redraw();
     }
-    ["select", "rect", "ellipse", "line", "pen"].forEach(t => {
-      document.getElementById(t + "Tool").onclick = () => setTool(t);
-    });
-    setTool("select");
+  }
 
-    canvas.onmousedown = e => {
-      const x = Math.max(0, Math.min(e.offsetX, w));
-      const y = Math.max(0, Math.min(e.offsetY, h));
-      if (tool === "select" && selected) {
-        const handle = getHandleAt(x, y);
-        if (handle) {
-          resizing = true;
-          activeHandle = handle;
-          return;
-        }
-        if (selected.type === "pen") {
-          draggingPoint = getPenPointAt(x, y);
-          if (draggingPoint) return;
-        }
-      }
-      if (tool === "select") {
-        selected = shapes.find(s => hitTest(s, x, y)) || null;
-        redraw();
-      } else {
-        isDrawing = true;
-        startX = x;
-        startY = y;
-        current = { type: tool, x1: x, y1: y, x2: x, y2: y, points: [], color: colorPicker.value, width: parseInt(strokeWidthInput.value) };
-        if (tool === "pen") current.points.push({ x, y });
-        shapes.push(current);
-        saveState();
-      }
-    };
-
-    canvas.onmousemove = e => {
-      const x = Math.max(0, Math.min(e.offsetX, w));
-      const y = Math.max(0, Math.min(e.offsetY, h));
-      if (resizing && selected) {
-        resizeShape(selected, activeHandle, x, y);
-        redraw();
-        return;
-      }
-      if (draggingPoint && selected) {
-        draggingPoint.x = x;
-        draggingPoint.y = y;
-        redraw();
-        return;
-      }
-      if (!isDrawing || !current) return;
-      current.x2 = x;
-      current.y2 = y;
-      if (tool === "pen") current.points.push({ x, y });
+  function redo() {
+    if (historyIndex < history.length - 1) {
+      historyIndex++;
+      shapes = JSON.parse(history[historyIndex]);
+      selected = null;
       redraw();
-    };
+    }
+  }
 
-    canvas.onmouseup = () => {
-      if (isDrawing) saveState();
-      isDrawing = false;
-      current = null;
-      resizing = false;
-      activeHandle = null;
-      draggingPoint = null;
-    };
+  function setTool(name) {
+    tool = name;
+    document.querySelectorAll("#toolbar button").forEach(b => b.classList.toggle("active", b.id === name + "Tool"));
+    selected = null;
+    redraw();
+  }
+  ["select", "rect", "ellipse", "line", "pen"].forEach(t => {
+    document.getElementById(t + "Tool").onclick = () => setTool(t);
+  });
+  setTool("select");
 
-    function hitTest(s, x, y) {
+  canvas.onmousedown = e => {
+    const x = Math.max(0, Math.min(e.offsetX, w));
+    const y = Math.max(0, Math.min(e.offsetY, h));
+    if (tool === "select" && selected) {
+      const handle = getHandleAt(x, y);
+      if (handle) {
+        resizing = true;
+        activeHandle = handle;
+        return;
+      }
+      if (selected.type === "pen") {
+        draggingPoint = getPenPointAt(x, y);
+        if (draggingPoint) return;
+      }
+    }
+    if (tool === "select") {
+      selected = shapes.find(s => hitTest(s, x, y)) || null;
+      redraw();
+    } else {
+      isDrawing = true;
+      startX = x;
+      startY = y;
+      current = { type: tool, x1: x, y1: y, x2: x, y2: y, points: [], color: colorPicker.value, width: parseInt(strokeWidthInput.value) };
+      if (tool === "pen") current.points.push({ x, y });
+      shapes.push(current);
+      saveState();
+    }
+  };
+
+  canvas.onmousemove = e => {
+    const x = Math.max(0, Math.min(e.offsetX, w));
+    const y = Math.max(0, Math.min(e.offsetY, h));
+    if (resizing && selected) {
+      resizeShape(selected, activeHandle, x, y);
+      redraw();
+      return;
+    }
+    if (draggingPoint && selected) {
+      draggingPoint.x = x;
+      draggingPoint.y = y;
+      redraw();
+      return;
+    }
+    if (!isDrawing || !current) return;
+    current.x2 = x;
+    current.y2 = y;
+    if (tool === "pen") current.points.push({ x, y });
+    redraw();
+  };
+
+  canvas.onmouseup = () => {
+    if (isDrawing) saveState();
+    isDrawing = false;
+    current = null;
+    resizing = false;
+    activeHandle = null;
+    draggingPoint = null;
+  };
+
+  function hitTest(s, x, y) {
+    if (s.type === "rect") {
+      const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
+      const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
+      return x >= minX && x <= maxX && y >= minY && y <= maxY;
+    }
+    if (s.type === "ellipse") {
+      const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
+      const cx = Math.min(s.x1, s.x2) + rx, cy = Math.min(s.y1, s.y2) + ry;
+      return ((x - cx) * (x - cx)) / (rx * rx) + ((y - cy) * (y - cy)) / (ry * ry) <= 1;
+    }
+    if (s.type === "line") {
+      return distanceToLine({ x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 }, { x, y }) < 5;
+    }
+    if (s.type === "pen") {
+      return s.points.some(p => Math.hypot(p.x - x, p.y - y) < 5);
+    }
+    return false;
+  }
+
+  function getPenPointAt(x, y) {
+    if (selected?.type === "pen") {
+      return selected.points.find(p => Math.hypot(p.x - x, p.y - y) < 6);
+    }
+    return null;
+  }
+
+  function redraw() {
+    ctx.clearRect(0, 0, w, h);
+    shapes.forEach(s => {
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = s.width;
+      ctx.beginPath();
       if (s.type === "rect") {
-        const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
-        const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
-        return x >= minX && x <= maxX && y >= minY && y <= maxY;
-      }
-      if (s.type === "ellipse") {
+        const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
+        ctx.strokeRect(x, y, Math.abs(s.x2 - s.x1), Math.abs(s.y2 - s.y1));
+      } else if (s.type === "ellipse") {
         const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
-        const cx = Math.min(s.x1, s.x2) + rx, cy = Math.min(s.y1, s.y2) + ry;
-        return ((x - cx) * (x - cx)) / (rx * rx) + ((y - cy) * (y - cy)) / (ry * ry) <= 1;
-      }
-      if (s.type === "line") {
-        return distanceToLine({ x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 }, { x, y }) < 5;
-      }
-      if (s.type === "pen") {
-        return s.points.some(p => Math.hypot(p.x - x, p.y - y) < 5);
-      }
-      return false;
-    }
-
-    function getPenPointAt(x, y) {
-      if (selected?.type === "pen") {
-        return selected.points.find(p => Math.hypot(p.x - x, p.y - y) < 6);
-      }
-      return null;
-    }
-
-    function redraw() {
-      ctx.clearRect(0, 0, w, h);
-      shapes.forEach(s => {
-        ctx.strokeStyle = s.color;
-        ctx.lineWidth = s.width;
+        ctx.ellipse(
+          Math.min(s.x1, s.x2) + rx,
+          Math.min(s.y1, s.y2) + ry,
+          rx, ry, 0, 0, 2 * Math.PI
+        );
+        ctx.stroke();
+      } else if (s.type === "line") {
+        ctx.moveTo(s.x1, s.y1);
+        ctx.lineTo(s.x2, s.y2);
+        ctx.stroke();
+      } else if (s.type === "pen" && s.points.length) {
         ctx.beginPath();
-        if (s.type === "rect") {
-          const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
-          ctx.strokeRect(x, y, Math.abs(s.x2 - s.x1), Math.abs(s.y2 - s.y1));
-        } else if (s.type === "ellipse") {
-          const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
-          ctx.ellipse(
-            Math.min(s.x1, s.x2) + rx,
-            Math.min(s.y1, s.y2) + ry,
-            rx, ry, 0, 0, 2 * Math.PI
-          );
-          ctx.stroke();
-        } else if (s.type === "line") {
-          ctx.moveTo(s.x1, s.y1);
-          ctx.lineTo(s.x2, s.y2);
-          ctx.stroke();
-        } else if (s.type === "pen" && s.points.length) {
-          ctx.beginPath();
-          ctx.moveTo(s.points[0].x, s.points[0].y);
-          s.points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-          if (selected === s) {
-            ctx.fillStyle = "#ffd700";
-            s.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
-          }
+        ctx.moveTo(s.points[0].x, s.points[0].y);
+        s.points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        if (selected === s) {
+          ctx.fillStyle = "#ffd700";
+          s.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
         }
-        if (selected === s) drawHandles(s);
-      });
-    }
-
-    function drawHandles(s) {
-      const handles = getHandles(s);
-      handles.forEach(h => {
-        const div = document.createElement("div");
-        div.className = "handle";
-        div.style.left = h.x + "px";
-        div.style.top = h.y + "px";
-        document.getElementById("container").appendChild(div);
-      });
-    }
-
-    function getHandles(s) {
-      if (s.type === "rect" || s.type === "ellipse") {
-        const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
-        const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
-        return [
-          { name: "tl", x: minX, y: minY },
-          { name: "tr", x: maxX, y: minY },
-          { name: "bl", x: minX, y: maxY },
-          { name: "br", x: maxX, y: maxY },
-        ];
       }
-      return [];
-    }
-
-    function getHandleAt(x, y) {
-      if (!selected) return null;
-      return getHandles(selected).find(h => Math.hypot(h.x - x, h.y - y) < 6);
-    }
-
-    function resizeShape(s, handle, x, y) {
-      if (s.type === "rect" || s.type === "ellipse") {
-        if (handle.name === "tl") { s.x1 = x; s.y1 = y; }
-        else if (handle.name === "tr") { s.x2 = x; s.y1 = y; }
-        else if (handle.name === "bl") { s.x1 = x; s.y2 = y; }
-        else if (handle.name === "br") { s.x2 = x; s.y2 = y; }
-      }
-    }
-
-    function distanceToLine(l, p) {
-      const { x1, y1, x2, y2 } = l;
-      const A = p.x - x1, B = p.y - y1, C = x2 - x1, D = y2 - y1;
-      const dot = A * C + B * D, len2 = C * C + D * D;
-      const param = len2 ? dot / len2 : -1;
-      let xx, yy;
-      if (param < 0) { xx = x1; yy = y1; }
-      else if (param > 1) { xx = x2; yy = y2; }
-      else { xx = x1 + param * C; yy = y1 + param * D; }
-      return Math.hypot(p.x - xx, p.y - yy);
-    }
-
-    document.getElementById("undo").onclick = undo;
-    document.getElementById("redo").onclick = redo;
-    document.getElementById("exportPNG").onclick = () => {
-      const link = document.createElement("a");
-      link.download = "drawing.png";
-      link.href = canvas.toDataURL();
-      link.click();
-    };
-    document.getElementById("saveJSON").onclick = () => {
-      const blob = new Blob([JSON.stringify(shapes)], { type: "application/json" });
-      const link = document.createElement("a");
-      link.download = "drawing.json";
-      link.href = URL.createObjectURL(blob);
-      link.click();
-    };
-
-    window.addEventListener("keydown", e => {
-      if ((e.key === "Delete" || e.key === "Backspace") && selected) {
-        shapes = shapes.filter(s => s !== selected);
-        selected = null;
-        saveState();
-        redraw();
-      } else if (e.ctrlKey && e.key === "z") {
-        undo();
-      } else if (e.ctrlKey && e.key === "y") {
-        redo();
-      }
+      if (selected === s) drawHandles(s);
     });
-  </script>
+  }
+
+  function drawHandles(s) {
+    document.querySelectorAll(".handle").forEach(h => h.remove());
+    const handles = getHandles(s);
+    handles.forEach(h => {
+      const div = document.createElement("div");
+      div.className = "handle";
+      div.style.left = h.x + "px";
+      div.style.top = h.y + "px";
+      document.getElementById("container").appendChild(div);
+    });
+  }
+
+  function getHandles(s) {
+    if (s.type === "rect" || s.type === "ellipse") {
+      const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
+      const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
+      return [
+        { name: "tl", x: minX, y: minY },
+        { name: "tr", x: maxX, y: minY },
+        { name: "bl", x: minX, y: maxY },
+        { name: "br", x: maxX, y: maxY },
+      ];
+    }
+    return [];
+  }
+
+  function getHandleAt(x, y) {
+    if (!selected) return null;
+    return getHandles(selected).find(h => Math.hypot(h.x - x, h.y - y) < 6);
+  }
+
+  function resizeShape(s, handle, x, y) {
+    if (s.type === "rect" || s.type === "ellipse") {
+      if (handle.name === "tl") { s.x1 = x; s.y1 = y; }
+      else if (handle.name === "tr") { s.x2 = x; s.y1 = y; }
+      else if (handle.name === "bl") { s.x1 = x; s.y2 = y; }
+      else if (handle.name === "br") { s.x2 = x; s.y2 = y; }
+    }
+  }
+
+  function distanceToLine(l, p) {
+    const { x1, y1, x2, y2 } = l;
+    const A = p.x - x1, B = p.y - y1, C = x2 - x1, D = y2 - y1;
+    const dot = A * C + B * D, len2 = C * C + D * D;
+    const param = len2 ? dot / len2 : -1;
+    let xx, yy;
+    if (param < 0) { xx = x1; yy = y1; }
+    else if (param > 1) { xx = x2; yy = y2; }
+    else { xx = x1 + param * C; yy = y1 + param * D; }
+    return Math.hypot(p.x - xx, p.y - yy);
+  }
+
+  document.getElementById("undo").onclick = undo;
+  document.getElementById("redo").onclick = redo;
+  document.getElementById("exportPNG").onclick = () => {
+    const link = document.createElement("a");
+    link.download = "drawing.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  };
+  document.getElementById("saveJSON").onclick = () => {
+    const blob = new Blob([JSON.stringify(shapes)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.download = "drawing.json";
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  };
+
+  window.addEventListener("keydown", e => {
+    if ((e.key === "Delete" || e.key === "Backspace") && selected) {
+      shapes = shapes.filter(s => s !== selected);
+      selected = null;
+      saveState();
+      redraw();
+    } else if (e.ctrlKey && e.key === "z") {
+      undo();
+    } else if (e.ctrlKey && e.key === "y") {
+      redo();
+    }
+  });
+
+  // Initialize canvas after all variables are defined
+  resize();
+</script>
 </body>
 </html>
