@@ -5,7 +5,7 @@
 <title>Mini Animate - Main Menu</title>
 <style>
   body {
-    background: linear-gradient(160deg, #2b2b2b, #1f1f1f);
+    background: radial-gradient(circle at center, #2b2b2b, #1b1b1b);
     color: #fff;
     font-family: "Segoe UI", sans-serif;
     margin: 0;
@@ -14,35 +14,52 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
   h1 {
-    font-size: 36px;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
+    font-size: 48px;
+    margin-bottom: 40px;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   }
-  button {
-    background: #3a3a3a;
+  .menu-btn {
+    background: #2e2e2e;
     color: #fff;
-    border: none;
-    padding: 12px 24px;
-    margin: 10px;
-    border-radius: 6px;
-    font-size: 18px;
+    border: 2px solid #ffd700;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 10px;
+    font-size: 20px;
     cursor: pointer;
-    transition: background 0.2s;
-    width: 200px;
+    transition: all 0.3s;
+    width: 220px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
   }
-  button:hover {
-    background: #5a5a5a;
+  .menu-btn:hover {
+    background: #ffd700;
+    color: #000;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  input[type="file"] {
+    display: none;
+  }
+  footer {
+    position: absolute;
+    bottom: 15px;
+    font-size: 14px;
+    color: #aaa;
   }
 </style>
 </head>
 <body>
 
-<h1>Mini Animate</h1>
-<button onclick="window.location.href='editor.html'">🎨 New Project</button>
-<button onclick="document.getElementById('fileInput').click()">📂 Load Project</button>
-<input type="file" id="fileInput" style="display:none" accept=".json">
+<h1>🎨 Open animate</h1>
+<button class="menu-btn" onclick="window.location.href='editor.html'">➕ New Project</button>
+<button class="menu-btn" onclick="document.getElementById('fileInput').click()">📂 Load Project</button>
+<input type="file" id="fileInput" accept=".json">
+
+<footer>© 2025 Open Animate – Open Source</footer>
 
 <script>
 document.getElementById('fileInput').addEventListener('change', function(evt) {
