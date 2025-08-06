@@ -1,250 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Mini Animate Editor</title>
+<meta charset="UTF-8">
+<title>Symbol Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <style>
-  body { background: #1c2526; color: #d9d9d9; font-family: sans-serif; margin: 0; overflow: hidden; }
-  h2 { text-align: center; margin: 10px 0; }
-  #toolbar { text-align: center; background: #2e2e2e; padding: 10px; }
-  button { margin: 5px; padding: 5px 10px; background: #444; color: white; border: none; cursor: pointer; }
+  body { background: #1c2526; color: #fff; font-family: sans-serif; text-align: center; margin: 0; }
+  h2 { margin: 10px 0; }
+  canvas { background: #fff; border: 1px solid #444; cursor: crosshair; display: block; margin: 10px auto; }
+  #toolbar { background: #2e2e2e; padding: 10px; }
+  button { margin: 4px; padding: 6px 10px; cursor: pointer; background: #444; color: #fff; border: none; }
   button:hover { background: #666; }
-  #canvas { background: #333; display: block; margin: 10px auto; border: 1px solid #555; }
-  #timeline { width: 600px; height: 60px; background: #2e2e2e; margin: 10px auto; position: relative; }
-  .frame { width: 10px; height: 100%; border-right: 1px solid #555; float: left; }
-  .keyframe { width: 8px; height: 8px; background: yellow; position: absolute; top: 25px; cursor: pointer; border-radius: 50%; }
-  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; z-index: 10; }
-  #loadingOverlay { display:none; position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);color:white;font-size:20px;align-items:center;justify-content:center;z-index:1000; }
+  #colorPicker, #brushSize { margin-left: 10px; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
-
-<h2>Mini Animate Editor</h2>
-<div id="toolbar">
-  <button id="addObj">Add Object</button>
-  <button id="addKey">Add Keyframe</button>
-  <button id="play">Play</button>
-  <button id="exportMP4">Export MP4</button>
-  <button id="exportFrames">Export Frames (ZIP)</button>
-</div>
-
-<canvas id="canvas" width="600" height="400"></canvas>
-<div id="timeline"></div>
-<div id="loadingOverlay">Rendering... Please wait</div>
+  <h2>Symbol Editor</h2>
+  <div id="toolbar">
+    <button id="drawBtn">✏️ Draw</button>
+    <button id="eraseBtn">🧽 Erase</button>
+    <input type="color" id="colorPicker" value="#000000">
+    Brush size: <input type="range" id="brushSize" min="1" max="20" value="5">
+    <button id="clearBtn">🗑️ Clear</button>
+    <button id="saveSymbol">💾 Save Symbol</button>
+    <button id="exportZip">📦 Export ZIP</button>
+  </div>
+  <canvas id="editorCanvas" width="400" height="400"></canvas>
 
 <script>
-const canvas = document.getElementById("canvas");
+const canvas = document.getElementById("editorCanvas");
 const ctx = canvas.getContext("2d");
-const timeline = document.getElementById("timeline");
-const loadingOverlay = document.getElementById("loadingOverlay");
+let drawing = false;
+let erasing = false;
+let brushColor = document.getElementById("colorPicker").value;
+let brushSize = document.getElementById("brushSize").value;
 
-let objects = [];
-let selected = null;
-let dragging = false;
-let offsetX, offsetY;
-let frames = 60;
-let currentFrame = 0;
-let keyframes = {};
-let isPlaying = false;
+document.getElementById("drawBtn").onclick = () => { erasing = false; };
+document.getElementById("eraseBtn").onclick = () => { erasing = true; };
+document.getElementById("colorPicker").oninput = e => { brushColor = e.target.value; };
+document.getElementById("brushSize").oninput = e => { brushSize = e.target.value; };
 
-// Playhead
-const playhead = document.createElement("div");
-playhead.id = "playhead";
+canvas.addEventListener("mousedown", () => drawing = true);
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mouseout", () => drawing = false);
+canvas.addEventListener("mousemove", draw);
 
-// Initialize timeline
-function initTimeline() {
-  timeline.innerHTML = "";
-  for (let i = 0; i < frames; i++) {
-    const div = document.createElement("div");
-    div.className = "frame";
-    timeline.appendChild(div);
-  }
-  timeline.appendChild(playhead);
-}
-initTimeline();
-
-function updatePlayhead() {
-  const timelineWidth = timeline.clientWidth;
-  const pos = (currentFrame / (frames - 1)) * timelineWidth;
-  playhead.style.left = pos + "px";
+function draw(e) {
+  if (!drawing) return;
+  ctx.beginPath();
+  ctx.arc(e.offsetX, e.offsetY, brushSize / 2, 0, Math.PI * 2);
+  ctx.fillStyle = erasing ? "#fff" : brushColor;
+  ctx.fill();
 }
 
-// Timeline scrubbing
-let scrubDragging = false;
-timeline.addEventListener("mousedown", (e) => { scrubDragging = true; movePlayhead(e); });
-timeline.addEventListener("mousemove", (e) => { if (scrubDragging) movePlayhead(e); });
-window.addEventListener("mouseup", () => scrubDragging = false);
-
-function movePlayhead(e) {
-  const rect = timeline.getBoundingClientRect();
-  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-  const frame = Math.floor((x / rect.width) * frames);
-  currentFrame = frame;
-  updatePlayhead();
-  updateObjectsForFrame(frame);
-  draw();
-}
-
-// Add object
-document.getElementById("addObj").onclick = () => {
-  const obj = { id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)` };
-  objects.push(obj);
-  keyframes[obj.id] = [];
-  selected = obj;
-  draw();
-};
-
-// Drag objects
-canvas.onmousedown = e => {
-  const mx = e.offsetX, my = e.offsetY;
-  selected = objects.find(o => mx > o.x && mx < o.x+o.w && my > o.y && my < o.y+o.h);
-  if (selected) {
-    dragging = true;
-    offsetX = mx - selected.x;
-    offsetY = my - selected.y;
-  }
-};
-canvas.onmousemove = e => {
-  if (dragging && selected) {
-    selected.x = e.offsetX - offsetX;
-    selected.y = e.offsetY - offsetY;
-    draw();
-  }
-};
-canvas.onmouseup = () => dragging = false;
-
-// Add keyframe
-document.getElementById("addKey").onclick = () => {
-  if (selected) {
-    keyframes[selected.id].push({ frame: currentFrame, x: selected.x, y: selected.y });
-    renderKeyframes();
-  }
-};
-
-// Play animation
-document.getElementById("play").onclick = () => {
-  if (isPlaying) return;
-  isPlaying = true;
-  let frame = currentFrame;
-  function animate() {
-    if (frame >= frames) { isPlaying = false; return; }
-    currentFrame = frame;
-    updateObjectsForFrame(frame);
-    draw();
-    updatePlayhead();
-    frame++;
-    requestAnimationFrame(animate);
-  }
-  animate();
-};
-
-// Draw objects
-function draw() {
+document.getElementById("clearBtn").onclick = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  objects.forEach(o => {
-    ctx.fillStyle = o.color;
-    ctx.fillRect(o.x, o.y, o.w, o.h);
-    if (o === selected) {
-      ctx.strokeStyle = "#fff";
-      ctx.strokeRect(o.x-2, o.y-2, o.w+4, o.h+4);
-    }
-  });
-}
-
-// Render keyframes
-function renderKeyframes() {
-  document.querySelectorAll(".keyframe").forEach(el => el.remove());
-  for (const objId in keyframes) {
-    keyframes[objId].forEach(kf => {
-      const dot = document.createElement("div");
-      dot.className = "keyframe";
-      dot.style.left = (kf.frame * 10 + 1) + "px";
-      dot.onclick = () => {
-        currentFrame = kf.frame;
-        const obj = objects.find(o => o.id == objId);
-        obj.x = kf.x;
-        obj.y = kf.y;
-        draw();
-        updatePlayhead();
-      };
-      timeline.appendChild(dot);
-    });
-  }
-}
-
-// Interpolation
-function updateObjectsForFrame(frame) {
-  objects.forEach(obj => {
-    const keys = keyframes[obj.id];
-    if (keys.length >= 2) {
-      let prev = keys[0], next = keys[keys.length-1];
-      for (let i=0; i<keys.length-1; i++) {
-        if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
-          prev = keys[i];
-          next = keys[i+1];
-          break;
-        }
-      }
-      const t = (frame - prev.frame) / (next.frame - prev.frame);
-      obj.x = prev.x + (next.x - prev.x) * t;
-      obj.y = prev.y + (next.y - prev.y) * t;
-    }
-  });
-}
-
-// Export MP4
-document.getElementById("exportMP4").onclick = async () => {
-  const { createFFmpeg } = FFmpeg;
-  const ffmpeg = createFFmpeg({ log: true });
-  if (!ffmpeg.isLoaded()) await ffmpeg.load();
-
-  loadingOverlay.style.display = "flex";
-
-  for (let frame = 0; frame < frames; frame++) {
-    updateObjectsForFrame(frame);
-    draw();
-    const dataURL = canvas.toDataURL("image/png");
-    const blob = await (await fetch(dataURL)).blob();
-    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3, "0")}.png`, new Uint8Array(await blob.arrayBuffer()));
-  }
-
-  await ffmpeg.run('-framerate', '30', '-i', 'frame_%03d.png', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'output.mp4');
-
-  const data = ffmpeg.FS('readFile', 'output.mp4');
-  const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(videoBlob);
-  a.download = 'animation.mp4';
-  a.click();
-
-  loadingOverlay.style.display = "none";
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
-// Export frames as ZIP
-document.getElementById("exportFrames").onclick = async () => {
-  loadingOverlay.style.display = "flex";
+// Init background white
+ctx.fillStyle = "#fff";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+document.getElementById("saveSymbol").onclick = () => {
+  const dataURL = canvas.toDataURL("image/png");
+  if (window.opener && window.opener.receiveSymbol) {
+    window.opener.receiveSymbol(dataURL);
+  }
+  window.close();
+};
+
+document.getElementById("exportZip").onclick = () => {
   const zip = new JSZip();
-
-  for (let frame = 0; frame < frames; frame++) {
-    updateObjectsForFrame(frame);
-    draw();
-    const dataURL = canvas.toDataURL("image/png");
-    const blob = await (await fetch(dataURL)).blob();
-    zip.file(`frame_${String(frame).padStart(3, "0")}.png`, blob);
-  }
-
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(zipBlob);
-  a.download = "frames.zip";
-  a.click();
-
-  loadingOverlay.style.display = "none";
+  // For now just one frame = symbol, but can be expanded
+  zip.file("frame_1.png", dataURLtoBlob(canvas.toDataURL("image/png")), { binary: true });
+  zip.generateAsync({ type: "blob" }).then(content => {
+    saveAs(content, "symbol_frames.zip");
+  });
 };
 
-draw();
+function dataURLtoBlob(dataurl) {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new Blob([u8arr], { type: mime });
+}
 </script>
 </body>
 </html>
