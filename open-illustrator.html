@@ -1,132 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Open Illustrator</title>
-<style>
-  body {
-    margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: #2b2b2b;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-
-  /* Top Toolbar */
-  #topbar {
-    height: 50px;
-    background: #3a3a3a;
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    gap: 10px;
-    border-bottom: 1px solid #555;
-  }
-  input[type=color], input[type=number] {
-    border: none;
-    border-radius: 4px;
-    padding: 5px;
-  }
-  button {
-    background: #4a4a4a;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  button:hover {
-    background: #666;
-  }
-
-  /* Main Container */
-  #main {
-    flex: 1;
-    display: flex;
-    height: calc(100vh - 50px);
-  }
-
-  /* Left Tool Panel */
-  #tools {
-    width: 60px;
-    background: #3a3a3a;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 10px;
-    border-right: 1px solid #555;
-  }
-  #tools button {
-    width: 40px;
-    height: 40px;
-    margin: 5px 0;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #tools button.active {
-    background: #0078d7;
-  }
-
-  /* Canvas Area */
-  #canvas-container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #2b2b2b;
-  }
-  canvas {
-    background: white;
-    border: 1px solid #666;
-  }
-
-  /* Right Panel (Layers) */
-  #layers {
-    width: 200px;
-    background: #3a3a3a;
-    border-left: 1px solid #555;
-    padding: 10px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Open Illustrator</title>
+  <style>
+    body {
+      background: #2b2b2b;
+      color: #fff;
+      font-family: sans-serif;
+      margin: 0;
+      display: flex;
+    }
+    #toolbar {
+      width: 80px;
+      background: #1f1f1f;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    button {
+      background: #3a3a3a;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+    }
+    button:hover { background: #555; }
+    #canvas {
+      flex-grow: 1;
+      background: white;
+      cursor: crosshair;
+    }
+  </style>
 </head>
 <body>
-
-<!-- Topbar -->
-<div id="topbar">
-  <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
-  <label>Stroke: <input type="number" id="strokeWidth" value="2" min="1" max="20"></label>
-  <button onclick="exportAsSymbol()">📦 Export Symbol</button>
-  <button onclick="saveIllustrator()">💾 Save</button>
-  <button onclick="loadIllustrator()">📂 Load</button>
-</div>
-
-<!-- Main Area -->
-<div id="main">
-  <!-- Tools -->
-  <div id="tools">
-    <button data-tool="brush">🖌️</button>
-    <button data-tool="eraser">🩹</button>
-    <button data-tool="line">📏</button>
-    <button data-tool="select">🖱️</button>
-    <button data-tool="text">🔤</button>
+  <div id="toolbar">
+    <button id="selectTool">Select</button>
+    <button id="lineTool">Line</button>
+    <button id="brushTool">Brush</button>
+    <button id="eraserTool">Eraser</button>
+    <button id="textTool">Text</button>
   </div>
-
-  <!-- Canvas -->
-  <div id="canvas-container">
-    <canvas id="illustratorCanvas" width="1000" height="700"></canvas>
-  </div>
-
-  <!-- Layers Panel -->
-  <div id="layers">
-    <h4>Layers</h4>
-    <ul id="layerList"></ul>
-  </div>
-</div>
-
-<script src="illustrator.js"></script>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script src="illustrator.js"></script>
 </body>
 </html>
