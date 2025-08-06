@@ -144,7 +144,9 @@ document.getElementById("createSymbol").onclick = () => {
 
 // Export MP4
 document.getElementById("exportMP4").onclick = async () => {
-  const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+ const { createFFmpeg } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: true });
+
   if (!ffmpeg.isLoaded()) await ffmpeg.load();
   loadingOverlay.style.display = "flex";
   for (let frame = 0; frame < frames; frame++) {
