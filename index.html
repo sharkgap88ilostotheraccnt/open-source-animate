@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mini Animate - Main Menu</title>
+<title>Open Animate</title>
 <style>
   body {
-    background: radial-gradient(circle at center, #2b2b2b, #1b1b1b);
+    background: radial-gradient(circle at center, #2a2a2a, #141414);
     color: #fff;
     font-family: "Segoe UI", sans-serif;
     margin: 0;
@@ -18,28 +18,40 @@
   }
   h1 {
     font-size: 48px;
-    margin-bottom: 40px;
     color: #ffd700;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    margin-bottom: 30px;
+    font-weight: 700;
+    letter-spacing: 2px;
   }
-  .menu-btn {
+  .menu-container {
+    background: #1f1f1f;
+    padding: 30px;
+    border-radius: 12px;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 300px;
+  }
+  button {
     background: #2e2e2e;
     color: #fff;
-    border: 2px solid #ffd700;
-    padding: 15px 30px;
-    margin: 15px;
-    border-radius: 10px;
-    font-size: 20px;
+    border: 1px solid #ffd700;
+    border-radius: 8px;
+    padding: 12px 20px;
     cursor: pointer;
-    transition: all 0.3s;
-    width: 220px;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    transition: all 0.2s ease-in-out;
+    font-size: 18px;
+    width: 100%;
+    text-align: center;
   }
-  .menu-btn:hover {
+  button:hover {
     background: #ffd700;
     color: #000;
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   }
   input[type="file"] {
     display: none;
@@ -47,19 +59,22 @@
   footer {
     position: absolute;
     bottom: 15px;
-    font-size: 14px;
+    font-size: 12px;
     color: #aaa;
   }
 </style>
 </head>
 <body>
 
-<h1>🎨 Open animate</h1>
-<button class="menu-btn" onclick="window.location.href='editor.html'">➕ New Project</button>
-<button class="menu-btn" onclick="document.getElementById('fileInput').click()">📂 Load Project</button>
-<input type="file" id="fileInput" accept=".json">
+<h1>✨ Open Animate</h1>
+<div class="menu-container">
+  <button onclick="window.location.href='editor.html'">🎨 New Project</button>
+  <button onclick="document.getElementById('fileInput').click()">📂 Load Project</button>
+  <input type="file" id="fileInput" accept=".json">
+  <button onclick="alert('Settings coming soon!')">⚙️ Settings</button>
+</div>
 
-<footer>© 2025 Open Animate – Open Source</footer>
+<footer>Open Animate v1.1 – Free & Open Source</footer>
 
 <script>
 document.getElementById('fileInput').addEventListener('change', function(evt) {
