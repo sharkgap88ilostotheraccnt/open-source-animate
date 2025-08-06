@@ -1,4 +1,3 @@
-<script>
 const canvas = document.getElementById("illustratorCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -147,4 +146,4 @@ function draw() {
 }
 
 draw();
-</script>
+
