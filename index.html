@@ -175,10 +175,6 @@
 
 <div id="topToolbar">
   <input type="color" id="colorPicker">
-<label>R: <input type="range" id="rSlider" min="0" max="255"></label>
-<label>G: <input type="range" id="gSlider" min="0" max="255"></label>
-<label>B: <input type="range" id="bSlider" min="0" max="255"></label>
-
   <button id="addObj">Add Rectangle</button>
   <button id="addKey">Add Keyframe</button>
   <button id="play">Play</button>
@@ -229,9 +225,7 @@ let symbolLibrary = [];
 let currentTool = "move";
 
   const colorPicker = document.getElementById("colorPicker");
-const rSlider = document.getElementById("rSlider");
-const gSlider = document.getElementById("gSlider");
-const bSlider = document.getElementById("bSlider");
+
 
 function rgbToHex(r, g, b) {
   return "#" + [r, g, b].map(x => {
@@ -250,10 +244,6 @@ function hexToRgb(hex) {
 
 // Update sliders when color input changes
 colorPicker.addEventListener("input", (e) => {
-  const { r, g, b } = hexToRgb(e.target.value);
-  rSlider.value = r;
-  gSlider.value = g;
-  bSlider.value = b;
   if (selected) {
     selected.tint = { r, g, b };
     draw();
@@ -261,18 +251,7 @@ colorPicker.addEventListener("input", (e) => {
 });
 
 // Update color input when sliders move
-[rSlider, gSlider, bSlider].forEach(slider => {
-  slider.addEventListener("input", () => {
-    const r = parseInt(rSlider.value);
-    const g = parseInt(gSlider.value);
-    const b = parseInt(bSlider.value);
-    colorPicker.value = rgbToHex(r, g, b);
-    if (selected) {
-      selected.tint = { r, g, b };
-      draw();
-    }
-  });
-});
+
 
 // Playhead
 const playhead = document.createElement("div");
