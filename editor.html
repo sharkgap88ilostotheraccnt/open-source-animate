@@ -284,15 +284,17 @@ const { createFFmpeg, fetchFile } = FFmpeg;
 const ffmpeg = createFFmpeg({ log: true });
 
 document.getElementById("exportMP4").onclick = async () => {
-  if (!ffmpeg.isLoaded()) await ffmpeg.load();
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  }
 
-  // Save each frame in memory
+  // Write frames
   for (let frame = 0; frame < frames; frame++) {
     updateObjectsForFrame(frame);
     draw();
     const dataURL = canvas.toDataURL("image/png");
     const blob = await (await fetch(dataURL)).blob();
-    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3,"0")}.png`, new Uint8Array(await blob.arrayBuffer()));
+    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3, "0")}.png`, new Uint8Array(await blob.arrayBuffer()));
   }
 
   // Encode to MP4
