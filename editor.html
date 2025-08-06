@@ -179,8 +179,10 @@
   <button id="play">Play</button>
   <button id="createSymbol">New Symbol</button>
   <button id="deleteObj">Delete</button>
-  <button id="saveProject">💾 Save Project</button>
-  <button id="exportPNG">🖼️ Export All </button>
+  <button id="saveProject">💾 Save Project as JSON</button>
+  <button id="exportPNG">🖼️ Export Current Frame </button>
+  <button id="exportFrames">📁 Export All Frames (ZIP)</button>
+
 
 </div>
 
@@ -203,7 +205,12 @@
     <strong>Library</strong>
   </div>
 </div>
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 
+  
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -255,6 +262,57 @@ if (loaded) {
   localStorage.removeItem('loadedProject');
   draw();
 }
+
+document.getElementById("exportFrames").onclick = async () => {
+  const zip = new JSZip();
+  
+  for (let frame = 0; frame < frames; frame++) {
+    updateObjectsForFrame(frame);
+    draw();
+    const dataURL = canvas.toDataURL("image/png");
+    zip.file(`frame_${String(frame).padStart(3, "0")}.png`, dataURL.split(",")[1], {base64: true});
+    await new Promise(r => setTimeout(r, 10)); // Avoid blocking UI
+  }
+  
+  zip.generateAsync({ type: "blob" }).then(content => {
+    saveAs(content, "animation_frames.zip");
+  });
+};
+
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: true });
+
+document.getElementById("exportMP4").onclick = async () => {
+  if (!ffmpeg.isLoaded()) await ffmpeg.load();
+
+  // Save each frame in memory
+  for (let frame = 0; frame < frames; frame++) {
+    updateObjectsForFrame(frame);
+    draw();
+    const dataURL = canvas.toDataURL("image/png");
+    const blob = await (await fetch(dataURL)).blob();
+    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3,"0")}.png`, new Uint8Array(await blob.arrayBuffer()));
+  }
+
+  // Encode to MP4
+  await ffmpeg.run(
+    '-framerate', '30',
+    '-i', 'frame_%03d.png',
+    '-c:v', 'libx264',
+    '-pix_fmt', 'yuv420p',
+    'output.mp4'
+  );
+
+  const data = ffmpeg.FS('readFile', 'output.mp4');
+  const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(videoBlob);
+  a.download = 'animation.mp4';
+  a.click();
+
+  // Cleanup
+  ffmpeg.FS('unlink', 'output.mp4');
+};
 
   
 // Playhead
