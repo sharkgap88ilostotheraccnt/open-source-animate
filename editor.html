@@ -211,6 +211,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 
+
   
 <script>
 const canvas = document.getElementById("canvas");
@@ -280,8 +281,9 @@ document.getElementById("exportFrames").onclick = async () => {
   });
 };
 
-const { createFFmpeg, fetchFile } = FFmpeg;
-const ffmpeg = createFFmpeg({ log: true });
+const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+const { fetchFile } = FFmpeg;
+
 
 document.getElementById("exportMP4").onclick = async () => {
   if (!ffmpeg.isLoaded()) {
