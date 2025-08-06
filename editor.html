@@ -179,6 +179,9 @@
   <button id="play">Play</button>
   <button id="createSymbol">New Symbol</button>
   <button id="deleteObj">Delete</button>
+  <button id="saveProject">💾 Save Project</button>
+  <button id="exportPNG">🖼️ Export All </button>
+
 </div>
 
 <div id="mainContainer">
@@ -223,7 +226,37 @@ let symbolLibrary = [];
 
 let currentTool = "move";
 
+// Save project as JSON
+document.getElementById("saveProject").onclick = () => {
+  const data = JSON.stringify({ objects, keyframes, symbols: symbolLibrary });
+  const blob = new Blob([data], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "project.json";
+  a.click();
+};
 
+// Export PNG of current frame
+document.getElementById("exportPNG").onclick = () => {
+  const link = document.createElement("a");
+  link.download = "frame.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
+
+// Load project if coming from main menu
+const loaded = localStorage.getItem('loadedProject');
+if (loaded) {
+  const { objects: objs, keyframes: keys, symbols } = JSON.parse(loaded);
+  objects = objs;
+  keyframes = keys;
+  symbolLibrary = symbols;
+  updateSymbolLibrary();
+  localStorage.removeItem('loadedProject');
+  draw();
+}
+
+  
 // Playhead
 const playhead = document.createElement("div");
 playhead.id = "playhead";
