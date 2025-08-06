@@ -213,6 +213,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
   
 <script>
+
+const ffmpeg = window.FFmpeg.createFFmpeg({ log: true });
+const { fetchFile } = window.FFmpeg;
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const timeline = document.getElementById("timeline");
@@ -280,8 +284,7 @@ document.getElementById("exportFrames").onclick = async () => {
 };
 
 // ---------------- MP4 Export ----------------
-const ffmpeg = FFmpeg.createFFmpeg({ log: true });
-const { fetchFile } = FFmpeg;
+
 
 document.getElementById("exportMP4").onclick = async () => {
   if (!ffmpeg.isLoaded()) {
