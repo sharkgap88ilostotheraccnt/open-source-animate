@@ -3,85 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <title>Open Illustrator</title>
-<link rel="stylesheet" href="css/style.css">
 <style>
   body {
-    background: #1d1d1d;
-    color: #fff;
-    font-family: "Segoe UI", sans-serif;
+    background: #2b2b2b;
+    color: white;
     margin: 0;
-    overflow: hidden;
-  }
-  header {
-    background: #252525;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #444;
-  }
-  .toolbar {
-    width: 60px;
-    background: #2e2e2e;
+    font-family: sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 10px;
-    gap: 10px;
-    border-right: 1px solid #444;
-    height: calc(100vh - 50px);
-    float: left;
   }
-  .toolbar button {
-    width: 40px;
-    height: 40px;
-    background: #3a3a3a;
-    border: 1px solid #555;
-    border-radius: 4px;
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  button {
+    padding: 8px 12px;
+    background: #444;
+    color: white;
+    border: none;
     cursor: pointer;
+    border-radius: 4px;
   }
-  .toolbar button:hover {
-    background: #555;
-  }
-  .canvas-container {
-    margin-left: 60px;
-    height: calc(100vh - 50px);
-    background: #333;
-    position: relative;
+  button:hover {
+    background: #666;
   }
   canvas {
-    background: #fff;
-    border: 1px solid #999;
-    position: absolute;
-    top: 20px;
-    left: 20px;
+    background: white;
+    border: 1px solid #666;
   }
 </style>
 </head>
 <body>
 
-<header>
-  <h2>Open Illustrator</h2>
-  <div>
-    <button onclick="exportAsSymbol()">Export to Animate</button>
-    <button onclick="saveIllustrator()">Save</button>
-    <button onclick="loadIllustrator()">Load</button>
-    <button onclick="window.location.href='index.html'">Return</button>
-  </div>
-</header>
-
+<h2>Open Illustrator</h2>
 <div class="toolbar">
-  <button title="Brush">🖌️</button>
-  <button title="Eraser">🩹</button>
-  <button title="Fill">🪣</button>
-  <button title="Shapes">⬜</button>
-  <button title="Text">🔤</button>
+  <button>🖌️ Brush</button>
+  <button>🩹 Eraser</button>
+  <button>📏 Line</button>
+  <button>🖱️ Select</button>
+  <button>🔤 Text</button>
+  <button onclick="exportAsSymbol()">📦 Export Symbol</button>
+  <button onclick="saveIllustrator()">💾 Save</button>
+  <button onclick="loadIllustrator()">📂 Load</button>
 </div>
 
-<div class="canvas-container">
-  <canvas id="illustratorCanvas" width="800" height="600"></canvas>
-</div>
+<canvas id="illustratorCanvas" width="800" height="600"></canvas>
 
-<script src="js/illustrator.js"></script>
+<script src="illustrator.js"></script>
 </body>
 </html>
