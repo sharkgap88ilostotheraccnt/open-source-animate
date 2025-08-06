@@ -208,12 +208,10 @@
 </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
+
 
 <script>
 
-const ffmpeg = FFmpeg.createFFmpeg({ log: true });
-const { fetchFile } = window.FFmpeg;
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -282,10 +280,10 @@ document.getElementById("exportFrames").onclick = async () => {
 };
 
 // ---------------- MP4 Export ----------------
+<script type="module">
+  import { createFFmpeg, fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js";
 
-window.addEventListener("load", () => {
-  const ffmpeg = FFmpeg.createFFmpeg({ log: true });
-  const { fetchFile } = FFmpeg;
+  const ffmpeg = createFFmpeg({ log: true });
 
   document.getElementById("exportMP4").onclick = async () => {
     if (!ffmpeg.isLoaded()) {
@@ -317,7 +315,7 @@ window.addEventListener("load", () => {
 
     ffmpeg.FS('unlink', 'output.mp4');
   };
-});
+</script>
 
   
 // Playhead
