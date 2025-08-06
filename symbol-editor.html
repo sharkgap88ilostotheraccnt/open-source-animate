@@ -2,278 +2,141 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Symbol Editor</title>
+<title>Mini Animate - Symbol Editor</title>
 <style>
   body {
-    background: #2b2b2b;
-    color: #f0f0f0;
+    background: radial-gradient(circle at center, #2b2b2b, #1b1b1b);
+    color: #fff;
     font-family: "Segoe UI", sans-serif;
     margin: 0;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
   }
-
-  /* Top bar */
-  #topBar {
-    background: #1e1e1e;
-    padding: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #444;
+  h2 {
+    font-size: 28px;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
   }
-  #topBar button {
-    background: #3a3a3a;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    margin-right: 6px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s;
-  }
-  #topBar button:hover {
-    background: #5a5a5a;
-  }
-
-  /* Main content */
-  #mainContent {
-    flex: 1;
-    display: flex;
-  }
-
-  /* Toolbar */
   #toolbar {
-    background: #252525;
-    width: 60px;
+    margin-top: 10px;
+    background: #2e2e2e;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #ffd700;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 0;
-    border-right: 1px solid #444;
+    gap: 10px;
   }
-  .tool-btn {
-    width: 40px;
-    height: 40px;
-    background: #3a3a3a;
-    margin: 4px 0;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  #toolbar button {
+    background: #2e2e2e;
+    color: #fff;
+    border: 1px solid #ffd700;
+    border-radius: 6px;
+    padding: 8px 12px;
     cursor: pointer;
     transition: background 0.2s;
-    font-size: 18px;
   }
-  .tool-btn:hover {
-    background: #555;
-  }
-  .tool-btn.active {
-    background: #0078d7;
-  }
-
-  /* Canvas area */
-  #canvasContainer {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #333;
-    position: relative;
+  #toolbar button:hover {
+    background: #ffd700;
+    color: #000;
   }
   canvas {
-    background: #fff;
-    border: 1px solid #555;
+    background: #333;
+    border: 2px solid #ffd700;
+    margin-top: 15px;
+    border-radius: 8px;
     cursor: crosshair;
-    box-shadow: 0 0 12px rgba(0,0,0,0.4);
   }
-
-  /* Color panel */
-  #colorPanel {
-    background: #252525;
-    width: 180px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-left: 1px solid #444;
-  }
-  #colorPanel input[type=color] {
-    width: 100%;
-    height: 40px;
-    border: none;
-    cursor: pointer;
-  }
-  .slider-container {
-    display: flex;
-    flex-direction: column;
+  footer {
+    position: absolute;
+    bottom: 10px;
     font-size: 12px;
-    color: #ccc;
-  }
-  .slider-container label {
-    margin-bottom: 4px;
-  }
-  input[type=range] {
-    width: 100%;
+    color: #aaa;
   }
 </style>
 </head>
 <body>
 
-<div id="topBar">
-  <div>
-    <button id="saveBtn">💾 Save</button>
-    <button id="clearBtn">🧹 Clear</button>
-  </div>
-  <span>Symbol Editor</span>
+<h2>🖌️ Create Symbol</h2>
+<div id="toolbar">
+  <button id="pen">✏️ Pen</button>
+  <button id="rect">⬛ Rectangle</button>
+  <button id="circle">⚪ Circle</button>
+  <button id="clear">🗑️ Clear</button>
+  <button id="save">💾 Save Symbol</button>
 </div>
+<canvas id="editorCanvas" width="400" height="400"></canvas>
 
-<div id="mainContent">
-  <!-- Toolbar -->
-  <div id="toolbar">
-    <div class="tool-btn active" data-tool="brush" title="Brush">✏️</div>
-    <div class="tool-btn" data-tool="eraser" title="Eraser">🩹</div>
-    <div class="tool-btn" data-tool="rect" title="Rectangle">▭</div>
-    <div class="tool-btn" data-tool="circle" title="Circle">⚪</div>
-    <div class="tool-btn" data-tool="line" title="Line">〣</div>
-  </div>
-
-  <!-- Canvas -->
-  <div id="canvasContainer">
-    <canvas id="editorCanvas" width="500" height="500"></canvas>
-  </div>
-
-  <!-- Color Panel -->
-  <div id="colorPanel">
-    <input type="color" id="colorPicker">
-    <div class="slider-container">
-      <label>R: <input type="range" id="rSlider" min="0" max="255"></label>
-      <label>G: <input type="range" id="gSlider" min="0" max="255"></label>
-      <label>B: <input type="range" id="bSlider" min="0" max="255"></label>
-    </div>
-  </div>
-</div>
+<footer>Tip: Draw or place shapes → Save → Adds to Library</footer>
 
 <script>
 const canvas = document.getElementById("editorCanvas");
 const ctx = canvas.getContext("2d");
 
-const colorPicker = document.getElementById("colorPicker");
-const rSlider = document.getElementById("rSlider");
-const gSlider = document.getElementById("gSlider");
-const bSlider = document.getElementById("bSlider");
-
-let brushColor = "#000000";
-let currentTool = "brush";
-let isDrawing = false;
+let currentTool = "pen";
+let drawing = false;
 let startX, startY;
 
-function rgbToHex(r, g, b) {
-  return "#" + [r, g, b].map(x => {
-    const hex = x.toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
-  }).join('');
-}
+document.getElementById("pen").onclick = () => currentTool = "pen";
+document.getElementById("rect").onclick = () => currentTool = "rect";
+document.getElementById("circle").onclick = () => currentTool = "circle";
 
-function hexToRgb(hex) {
-  const bigint = parseInt(hex.slice(1), 16);
-  return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
-}
-
-// Tool buttons
-document.querySelectorAll(".tool-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tool-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentTool = btn.dataset.tool;
-  });
-});
-
-// Color sync
-colorPicker.addEventListener("input", (e) => {
-  const {r, g, b} = hexToRgb(e.target.value);
-  rSlider.value = r;
-  gSlider.value = g;
-  bSlider.value = b;
-  brushColor = e.target.value;
-});
-[rSlider, gSlider, bSlider].forEach(slider => {
-  slider.addEventListener("input", () => {
-    const r = parseInt(rSlider.value);
-    const g = parseInt(gSlider.value);
-    const b = parseInt(bSlider.value);
-    brushColor = rgbToHex(r, g, b);
-    colorPicker.value = brushColor;
-  });
-});
-
-// Drawing
 canvas.addEventListener("mousedown", (e) => {
-  isDrawing = true;
   startX = e.offsetX;
   startY = e.offsetY;
-  if (currentTool === "brush" || currentTool === "eraser") {
+  drawing = true;
+  if (currentTool === "pen") {
     ctx.beginPath();
     ctx.moveTo(startX, startY);
   }
 });
-canvas.addEventListener("mouseup", (e) => {
-  if (!isDrawing) return;
-  if (currentTool === "rect") {
-    ctx.fillStyle = brushColor;
-    ctx.fillRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
-  } else if (currentTool === "circle") {
-    const radius = Math.sqrt(Math.pow(e.offsetX - startX, 2) + Math.pow(e.offsetY - startY, 2));
-    ctx.beginPath();
-    ctx.arc(startX, startY, radius, 0, Math.PI * 2);
-    ctx.fillStyle = brushColor;
-    ctx.fill();
-  } else if (currentTool === "line") {
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!drawing) return;
+  if (currentTool === "pen") {
     ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.strokeStyle = brushColor;
+    ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.stroke();
   }
-  isDrawing = false;
 });
-canvas.addEventListener("mousemove", (e) => {
-  if (!isDrawing) return;
-  if (currentTool === "brush") {
-    ctx.lineWidth = 5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = brushColor;
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
+
+canvas.addEventListener("mouseup", (e) => {
+  if (!drawing) return;
+  drawing = false;
+
+  const endX = e.offsetX;
+  const endY = e.offsetY;
+
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 2;
+
+  if (currentTool === "rect") {
+    ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+  } else if (currentTool === "circle") {
+    const radius = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
     ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
-  } else if (currentTool === "eraser") {
-    ctx.lineWidth = 20;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#fff";
-    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.arc(startX, startY, radius, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
   }
 });
 
-// Clear and save
-document.getElementById("clearBtn").addEventListener("click", () => {
+document.getElementById("clear").onclick = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
-document.getElementById("saveBtn").addEventListener("click", () => {
-  const dataURL = canvas.toDataURL();
-  if (window.opener && typeof window.opener.receiveSymbol === "function") {
+};
+
+document.getElementById("save").onclick = () => {
+  const dataURL = canvas.toDataURL("image/png");
+  if (window.opener && window.opener.receiveSymbol) {
     window.opener.receiveSymbol(dataURL);
   }
   window.close();
-});
+};
 </script>
 
 </body>
 </html>
+
