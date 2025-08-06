@@ -4,55 +4,80 @@ const ctx = canvas.getContext("2d");
 let tool = "brush";
 let drawing = false;
 let currentPath = [];
-let paths = []; // {type, points, color, selected}
-
+let paths = []; // stores drawn elements
 let selectedPath = null;
 let draggingPoint = null;
 
 const color = "#000";
 const lineWidth = 2;
 
-// Toolbar buttons
+// Tools mapping
+const tools = ["brush", "eraser", "line", "select", "text"];
 document.querySelectorAll(".toolbar button").forEach((btn, index) => {
   btn.addEventListener("click", () => {
-    const tools = ["brush", "eraser", "fill", "shapes", "text"];
-    tool = tools[index] || "brush";
-    if (tool === "shapes") tool = "line";
-    if (tool === "text") tool = "select"; // repurpose as select for now
+    tool = tools[index];
+    deselectAll();
+    draw();
   });
 });
 
-// Mouse events
 canvas.addEventListener("mousedown", (e) => {
-  const {x, y} = getMousePos(e);
+  const { x, y } = getMousePos(e);
 
-  if (tool === "brush" || tool === "line") {
+  if (tool === "brush") {
     drawing = true;
-    currentPath = [{x, y}];
-    if (tool === "line") {
-      currentPath.push({x, y});
+    currentPath = [{ x, y }];
+  } 
+  else if (tool === "line") {
+    drawing = true;
+    currentPath = [{ x, y }, { x, y }];
+  } 
+  else if (tool === "eraser") {
+    const hit = findPathNear(x, y);
+    if (hit) {
+      paths = paths.filter(p => p !== hit);
+      draw();
     }
-  } else if (tool === "select") {
+  }
+  else if (tool === "select") {
     selectedPath = findPathNear(x, y);
     if (selectedPath) {
+      selectedPath.selected = true;
       draggingPoint = findPointInPath(selectedPath, x, y);
+    }
+    draw();
+  }
+  else if (tool === "text") {
+    const text = prompt("Enter text:");
+    if (text) {
+      paths.push({
+        type: "text",
+        text,
+        x,
+        y,
+        color,
+        selected: false
+      });
+      draw();
     }
   }
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  const {x, y} = getMousePos(e);
+  const { x, y } = getMousePos(e);
 
-  if (!drawing && !draggingPoint) return;
+  if (!drawing && draggingPoint === null) return;
 
   if (tool === "brush") {
-    currentPath.push({x, y});
+    currentPath.push({ x, y });
     draw();
-  } else if (tool === "line") {
-    currentPath[1] = {x, y};
+  } 
+  else if (tool === "line") {
+    currentPath[1] = { x, y };
     draw();
-  } else if (tool === "select" && selectedPath && draggingPoint !== null) {
-    selectedPath.points[draggingPoint] = {x, y};
+  } 
+  else if (tool === "select" && selectedPath && draggingPoint !== null) {
+    selectedPath.points[draggingPoint] = { x, y };
     draw();
   }
 });
@@ -61,7 +86,7 @@ canvas.addEventListener("mouseup", () => {
   if (drawing) {
     if (currentPath.length > 0) {
       paths.push({
-        type: tool,
+        type: tool === "line" ? "line" : "brush",
         points: [...currentPath],
         color,
         selected: false
@@ -69,43 +94,49 @@ canvas.addEventListener("mouseup", () => {
     }
     currentPath = [];
     drawing = false;
-    draw();
   }
   draggingPoint = null;
+  draw();
 });
 
-// Drawing
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   paths.forEach((path) => {
-    ctx.beginPath();
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = path.color;
 
     if (path.type === "brush") {
+      ctx.beginPath();
       path.points.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
         else ctx.lineTo(p.x, p.y);
       });
-    } else if (path.type === "line") {
+      ctx.stroke();
+    } 
+    else if (path.type === "line") {
       const [p1, p2] = path.points;
+      ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+    else if (path.type === "text") {
+      ctx.fillStyle = path.color;
+      ctx.font = "16px Arial";
+      ctx.fillText(path.text, path.x, path.y);
     }
 
-    ctx.stroke();
-
-    if (path.selected) {
+    if (path.selected && path.points) {
       drawHandles(path.points);
     }
   });
 
-  // Current drawing
-  if (currentPath.length > 0) {
-    ctx.beginPath();
+  // Show current drawing
+  if (currentPath.length > 0 && (tool === "brush" || tool === "line")) {
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = color;
+    ctx.beginPath();
 
     if (tool === "brush") {
       currentPath.forEach((p, i) => {
@@ -131,6 +162,11 @@ function drawHandles(points) {
   });
 }
 
+function deselectAll() {
+  paths.forEach(p => p.selected = false);
+  selectedPath = null;
+}
+
 function getMousePos(e) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -141,19 +177,19 @@ function getMousePos(e) {
 
 function findPathNear(x, y) {
   return paths.find((path) =>
-    path.points.some((p) => distance(p.x, p.y, x, y) < 6)
+    path.points?.some((p) => distance(p.x, p.y, x, y) < 6) ||
+    (path.type === "text" && distance(path.x, path.y, x, y) < 10)
   );
 }
 
 function findPointInPath(path, x, y) {
-  return path.points.findIndex((p) => distance(p.x, p.y, x, y) < 6);
+  return path.points?.findIndex((p) => distance(p.x, p.y, x, y) < 6);
 }
 
 function distance(x1, y1, x2, y2) {
   return Math.hypot(x2 - x1, y2 - y1);
 }
 
-// Export to Open Animate as symbol
 function exportAsSymbol() {
   const dataURL = canvas.toDataURL("image/png");
   if (window.opener && window.opener.receiveSymbol) {
@@ -164,7 +200,6 @@ function exportAsSymbol() {
   }
 }
 
-// Save/load illustrator project
 function saveIllustrator() {
   const data = JSON.stringify(paths);
   const blob = new Blob([data], { type: "application/json" });
