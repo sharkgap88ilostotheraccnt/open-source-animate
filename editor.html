@@ -2,81 +2,52 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Mini Animate - Editor</title>
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<title>Mini Animate Editor</title>
 <style>
   body { background: #1c2526; color: #d9d9d9; font-family: sans-serif; margin: 0; overflow: hidden; }
-  #topToolbar { text-align: center; margin: 10px 0; background: #2e2e2e; padding: 8px; border-bottom: 1px solid #444; }
-  button { padding: 8px; margin: 3px; background: #2e2e2e; color: #d9d9d9; border: 1px solid #444; border-radius: 4px; }
-  button:hover { background: #4a4a4a; color: #fff; }
-  button.active { background: #0078d7; color: #fff; }
-  #mainContainer { display: flex; gap: 8px; width: 1000px; margin: 10px auto; background: #252526; padding: 10px; border-radius: 6px; }
-  #canvasAndTimeline { flex-grow: 1; position: relative; }
-  canvas { background: #333; display: block; border: 1px solid #444; }
-  #timeline { width: 100%; height: 80px; background: #2e2e2e; position: relative; border-top: 1px solid #444; margin-top: 8px; border-radius: 4px; }
-  .frame { width: 12px; height: 100%; border-right: 1px solid #555; float: left; position: relative; }
-  .frame:nth-child(5n)::before { content: attr(data-frame); position: absolute; top: 5px; font-size: 10px; color: #999; text-align: center; width: 12px; }
-  .keyframe { width: 8px; height: 8px; background: #ffd700; position: absolute; top: 30px; cursor: pointer; border-radius: 50%; border: 1px solid #000; }
-  .keyframe:hover { transform: scale(1.3); }
-  #playhead { width: 2px; height: 100%; background: #ff4d4d; position: absolute; top: 0; z-index: 10; }
-  #symbolLibrary { width: 180px; background: #2e2e2e; padding: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 6px; max-height: 480px; overflow-y: auto; }
-  #symbolLibrary strong { font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-  #symbolLibrary img { width: 60px; height: 60px; cursor: pointer; border: 2px solid transparent; background: #333; border-radius: 4px; }
-  #symbolLibrary img:hover { border-color: #ffd700; }
-  #transformToolbar { width: 60px; background: #2e2e2e; padding: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 6px; }
-  #transformToolbar strong { font-size: 12px; text-transform: uppercase; }
-  #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 20px; align-items: center; justify-content: center; z-index: 999; }
+  h2 { text-align: center; margin: 10px 0; }
+  #toolbar { text-align: center; background: #2e2e2e; padding: 10px; }
+  button { margin: 5px; padding: 5px 10px; background: #444; color: white; border: none; cursor: pointer; }
+  button:hover { background: #666; }
+  #canvas { background: #333; display: block; margin: 10px auto; border: 1px solid #555; }
+  #timeline { width: 600px; height: 60px; background: #2e2e2e; margin: 10px auto; position: relative; }
+  .frame { width: 10px; height: 100%; border-right: 1px solid #555; float: left; }
+  .keyframe { width: 8px; height: 8px; background: yellow; position: absolute; top: 25px; cursor: pointer; border-radius: 50%; }
+  #playhead { width: 2px; height: 100%; background: red; position: absolute; top: 0; z-index: 10; }
+  #loadingOverlay { display:none; position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);color:white;font-size:20px;align-items:center;justify-content:center;z-index:1000; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
 
-<div id="topToolbar">
-  <button id="addObj">Add Rectangle</button>
+<h2>Mini Animate Editor</h2>
+<div id="toolbar">
+  <button id="addObj">Add Object</button>
   <button id="addKey">Add Keyframe</button>
   <button id="play">Play</button>
-  <button id="createSymbol">New Symbol</button>
-  <button id="deleteObj">Delete</button>
   <button id="exportMP4">Export MP4</button>
-  <button id="exportFrames">Export Frames ZIP</button>
+  <button id="exportFrames">Export Frames (ZIP)</button>
 </div>
 
-<div id="mainContainer">
-  <div id="transformToolbar">
-    <strong>Tools</strong>
-    <button id="moveTool">↔</button>
-    <button id="scaleTool">⬛</button>
-    <button id="rotateTool">↻</button>
-    <button id="flipH">⇆</button>
-    <button id="flipV">⇅</button>
-  </div>
+<canvas id="canvas" width="600" height="400"></canvas>
+<div id="timeline"></div>
+<div id="loadingOverlay">Rendering... Please wait</div>
 
-  <div id="canvasAndTimeline">
-    <canvas id="canvas" width="600" height="400"></canvas>
-    <div id="timeline"></div>
-  </div>
-
-  <div id="symbolLibrary">
-    <strong>Library</strong>
-  </div>
-</div>
-
-<div id="loadingOverlay">Encoding... Please wait</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const timeline = document.getElementById("timeline");
-const symbolLibraryDiv = document.getElementById("symbolLibrary");
 const loadingOverlay = document.getElementById("loadingOverlay");
 
 let objects = [];
 let selected = null;
 let dragging = false;
-let offsetX, offsetY, startScale, dragStartAngle, startRotation;
-let frames = 60, currentFrame = 0, keyframes = {}, isPlaying = false;
-let symbolLibrary = [], currentTool = "move";
+let offsetX, offsetY;
+let frames = 60;
+let currentFrame = 0;
+let keyframes = {};
+let isPlaying = false;
 
 // Playhead
 const playhead = document.createElement("div");
@@ -88,7 +59,6 @@ function initTimeline() {
   for (let i = 0; i < frames; i++) {
     const div = document.createElement("div");
     div.className = "frame";
-    div.dataset.frame = i;
     timeline.appendChild(div);
   }
   timeline.appendChild(playhead);
@@ -101,7 +71,7 @@ function updatePlayhead() {
   playhead.style.left = pos + "px";
 }
 
-// Timeline interaction
+// Timeline scrubbing
 let scrubDragging = false;
 timeline.addEventListener("mousedown", (e) => { scrubDragging = true; movePlayhead(e); });
 timeline.addEventListener("mousemove", (e) => { if (scrubDragging) movePlayhead(e); });
@@ -117,112 +87,88 @@ function movePlayhead(e) {
   draw();
 }
 
-// Toolbar buttons
+// Add object
 document.getElementById("addObj").onclick = () => {
-  const obj = { id: Date.now(), x: 100, y: 100, w: 80, h: 80,
-    color: `hsl(${Math.random()*360},70%,50%)`, rotation: 0, scaleX: 1, scaleY: 1, image: null };
-  objects.push(obj); keyframes[obj.id] = []; selected = obj; draw();
-};
-document.getElementById("addKey").onclick = () => {
-  if (selected) { keyframes[selected.id].push({ frame: currentFrame, x: selected.x, y: selected.y, w: selected.w, h: selected.h,
-    rotation: selected.rotation, scaleX: selected.scaleX, scaleY: selected.scaleY }); renderKeyframes(); }
-};
-document.getElementById("play").onclick = () => {
-  if (isPlaying) return; isPlaying = true; let frame = currentFrame;
-  function animate() {
-    if (frame >= frames) { isPlaying = false; currentFrame = 0; updatePlayhead(); draw(); return; }
-    currentFrame = frame; updateObjectsForFrame(frame); draw(); updatePlayhead(); frame++; requestAnimationFrame(animate);
-  } animate();
-};
-document.getElementById("deleteObj").onclick = () => {
-  if (!selected) return; objects = objects.filter(o => o !== selected);
-  delete keyframes[selected.id]; selected = null; draw(); renderKeyframes();
-};
-document.getElementById("createSymbol").onclick = () => {
-  window.open("symbol-editor.html", "SymbolEditor", "width=500,height=500");
-};
-
-// Export MP4
-document.getElementById("exportMP4").onclick = async () => {
- const { createFFmpeg } = FFmpeg;
-const ffmpeg = createFFmpeg({ log: true });
-
-  if (!ffmpeg.isLoaded()) await ffmpeg.load();
-  loadingOverlay.style.display = "flex";
-  for (let frame = 0; frame < frames; frame++) {
-    updateObjectsForFrame(frame); draw();
-    const dataURL = canvas.toDataURL("image/png");
-    const blob = await (await fetch(dataURL)).blob();
-    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3, "0")}.png`, new Uint8Array(await blob.arrayBuffer()));
-  }
-  await ffmpeg.run('-framerate','30','-i','frame_%03d.png','-c:v','libx264','-pix_fmt','yuv420p','output.mp4');
-  const data = ffmpeg.FS('readFile', 'output.mp4');
-  const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(videoBlob); a.download = 'animation.mp4'; a.click();
-  loadingOverlay.style.display = "none";
-};
-
-// Export frames ZIP
-document.getElementById("exportFrames").onclick = async () => {
-  const zip = new JSZip();
-  for (let frame = 0; frame < frames; frame++) {
-    updateObjectsForFrame(frame); draw();
-    const dataURL = canvas.toDataURL("image/png");
-    zip.file(`frame_${String(frame).padStart(3,"0")}.png`, dataURL.split(",")[1], { base64: true });
-  }
-  const blob = await zip.generateAsync({ type: "blob" });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "frames.zip"; a.click();
-};
-
-// Transform tools
-document.getElementById("moveTool").onclick = () => { currentTool = "move"; updateToolUI(); };
-document.getElementById("scaleTool").onclick = () => { currentTool = "scale"; updateToolUI(); };
-document.getElementById("rotateTool").onclick = () => { currentTool = "rotate"; updateToolUI(); };
-document.getElementById("flipH").onclick = () => { if (selected) { selected.scaleX *= -1; draw(); } };
-document.getElementById("flipV").onclick = () => { if (selected) { selected.scaleY *= -1; draw(); } };
-function updateToolUI() { ["moveTool","scaleTool","rotateTool"].forEach(id => document.getElementById(id).classList.toggle("active", currentTool === id.replace("Tool",""))); }
-updateToolUI();
-
-// Canvas interaction
-function pointInObject(x, y, o) { return x > o.x && x < o.x+o.w && y > o.y && y < o.y+o.h; }
-canvas.onmousedown = e => {
-  const mx = e.offsetX, my = e.offsetY; selected = objects.find(o => pointInObject(mx,my,o));
-  if (selected) {
-    dragging = true; if (currentTool==="move"){ offsetX=mx-selected.x; offsetY=my-selected.y; }
-    if (currentTool==="scale"){ offsetX=mx; offsetY=my; startScale={w:selected.w,h:selected.h}; }
-    if (currentTool==="rotate"){ const cx=selected.x+selected.w/2; const cy=selected.y+selected.h/2;
-      dragStartAngle=Math.atan2(my-cy,mx-cx); startRotation=selected.rotation; }
-  } draw();
-};
-canvas.onmousemove = e => {
-  if (!dragging || !selected) return; const mx = e.offsetX, my = e.offsetY;
-  if (currentTool==="move"){ selected.x=mx-offsetX; selected.y=my-offsetY; }
-  if (currentTool==="scale"){ selected.w=Math.max(10,startScale.w+(mx-offsetX)); selected.h=Math.max(10,startScale.h+(my-offsetY)); }
-  if (currentTool==="rotate"){ const cx=selected.x+selected.w/2; const cy=selected.y+selected.h/2;
-    const angle=Math.atan2(my-cy,mx-cx); selected.rotation=startRotation+(angle-dragStartAngle)*180/Math.PI; }
+  const obj = { id: Date.now(), x: 100, y: 100, w: 80, h: 80, color: `hsl(${Math.random()*360},70%,50%)` };
+  objects.push(obj);
+  keyframes[obj.id] = [];
+  selected = obj;
   draw();
 };
-canvas.onmouseup = () => dragging=false;
 
-// Draw
+// Drag objects
+canvas.onmousedown = e => {
+  const mx = e.offsetX, my = e.offsetY;
+  selected = objects.find(o => mx > o.x && mx < o.x+o.w && my > o.y && my < o.y+o.h);
+  if (selected) {
+    dragging = true;
+    offsetX = mx - selected.x;
+    offsetY = my - selected.y;
+  }
+};
+canvas.onmousemove = e => {
+  if (dragging && selected) {
+    selected.x = e.offsetX - offsetX;
+    selected.y = e.offsetY - offsetY;
+    draw();
+  }
+};
+canvas.onmouseup = () => dragging = false;
+
+// Add keyframe
+document.getElementById("addKey").onclick = () => {
+  if (selected) {
+    keyframes[selected.id].push({ frame: currentFrame, x: selected.x, y: selected.y });
+    renderKeyframes();
+  }
+};
+
+// Play animation
+document.getElementById("play").onclick = () => {
+  if (isPlaying) return;
+  isPlaying = true;
+  let frame = currentFrame;
+  function animate() {
+    if (frame >= frames) { isPlaying = false; return; }
+    currentFrame = frame;
+    updateObjectsForFrame(frame);
+    draw();
+    updatePlayhead();
+    frame++;
+    requestAnimationFrame(animate);
+  }
+  animate();
+};
+
+// Draw objects
 function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   objects.forEach(o => {
-    ctx.save(); const cx=o.x+o.w/2, cy=o.y+o.h/2;
-    ctx.translate(cx,cy); ctx.rotate((o.rotation||0)*Math.PI/180); ctx.scale(o.scaleX||1,o.scaleY||1);
-    if (o.image) ctx.drawImage(o.image,-o.w/2,-o.h/2,o.w,o.h); else { ctx.fillStyle=o.color; ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h); }
-    if (o===selected){ ctx.strokeStyle="#ffd700"; ctx.lineWidth=2; ctx.strokeRect(-o.w/2,-o.h/2,o.w,o.h); } ctx.restore();
+    ctx.fillStyle = o.color;
+    ctx.fillRect(o.x, o.y, o.w, o.h);
+    if (o === selected) {
+      ctx.strokeStyle = "#fff";
+      ctx.strokeRect(o.x-2, o.y-2, o.w+4, o.h+4);
+    }
   });
 }
 
-// Timeline keyframes
+// Render keyframes
 function renderKeyframes() {
   document.querySelectorAll(".keyframe").forEach(el => el.remove());
   for (const objId in keyframes) {
     keyframes[objId].forEach(kf => {
-      const dot=document.createElement("div"); dot.className="keyframe"; dot.style.left=(kf.frame*12+2)+"px";
-      dot.onclick=()=>{ currentFrame=kf.frame; const obj=objects.find(o=>o.id==objId);
-        if(obj){ Object.assign(obj,kf); selected=obj; draw(); updatePlayhead(); } };
+      const dot = document.createElement("div");
+      dot.className = "keyframe";
+      dot.style.left = (kf.frame * 10 + 1) + "px";
+      dot.onclick = () => {
+        currentFrame = kf.frame;
+        const obj = objects.find(o => o.id == objId);
+        obj.x = kf.x;
+        obj.y = kf.y;
+        draw();
+        updatePlayhead();
+      };
       timeline.appendChild(dot);
     });
   }
@@ -231,35 +177,72 @@ function renderKeyframes() {
 // Interpolation
 function updateObjectsForFrame(frame) {
   objects.forEach(obj => {
-    const keys=keyframes[obj.id]; if(!keys||keys.length<2) return;
-    let prev=keys[0], next=keys[keys.length-1];
-    for(let i=0;i<keys.length-1;i++){ if(frame>=keys[i].frame&&frame<=keys[i+1].frame){ prev=keys[i]; next=keys[i+1]; break; } }
-    const t=(frame-prev.frame)/(next.frame-prev.frame);
-    obj.x=prev.x+(next.x-prev.x)*t; obj.y=prev.y+(next.y-prev.y)*t;
-    obj.w=prev.w+(next.w-prev.w)*t; obj.h=prev.h+(next.h-prev.h)*t;
-    obj.rotation=prev.rotation+(next.rotation-prev.rotation)*t;
-    obj.scaleX=prev.scaleX+(next.scaleX-prev.scaleX)*t;
-    obj.scaleY=prev.scaleY+(next.scaleY-prev.scaleY)*t;
+    const keys = keyframes[obj.id];
+    if (keys.length >= 2) {
+      let prev = keys[0], next = keys[keys.length-1];
+      for (let i=0; i<keys.length-1; i++) {
+        if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
+          prev = keys[i];
+          next = keys[i+1];
+          break;
+        }
+      }
+      const t = (frame - prev.frame) / (next.frame - prev.frame);
+      obj.x = prev.x + (next.x - prev.x) * t;
+      obj.y = prev.y + (next.y - prev.y) * t;
+    }
   });
 }
 
-// Symbol library
-window.receiveSymbol = function(dataURL) {
-  symbolLibrary.push(dataURL); updateSymbolLibrary();
-  const img=new Image(); img.src=dataURL; img.onload=()=>{ 
-    const obj={ id:Date.now(),x:100,y:100,w:img.width/2,h:img.height/2,rotation:0,scaleX:1,scaleY:1,image:img,color:null };
-    objects.push(obj); keyframes[obj.id]=[]; selected=obj; draw(); };
+// Export MP4
+document.getElementById("exportMP4").onclick = async () => {
+  const { createFFmpeg } = FFmpeg;
+  const ffmpeg = createFFmpeg({ log: true });
+  if (!ffmpeg.isLoaded()) await ffmpeg.load();
+
+  loadingOverlay.style.display = "flex";
+
+  for (let frame = 0; frame < frames; frame++) {
+    updateObjectsForFrame(frame);
+    draw();
+    const dataURL = canvas.toDataURL("image/png");
+    const blob = await (await fetch(dataURL)).blob();
+    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3, "0")}.png`, new Uint8Array(await blob.arrayBuffer()));
+  }
+
+  await ffmpeg.run('-framerate', '30', '-i', 'frame_%03d.png', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'output.mp4');
+
+  const data = ffmpeg.FS('readFile', 'output.mp4');
+  const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(videoBlob);
+  a.download = 'animation.mp4';
+  a.click();
+
+  loadingOverlay.style.display = "none";
 };
-function updateSymbolLibrary() {
-  symbolLibraryDiv.querySelectorAll("img").forEach(img=>img.remove());
-  symbolLibrary.forEach((dataURL,index)=>{ 
-    const img=new Image(); img.src=dataURL; img.title=`Symbol ${index+1}`;
-    img.onclick=()=>{ const symbolImg=new Image(); symbolImg.src=dataURL; symbolImg.onload=()=>{ 
-      const obj={ id:Date.now(),x:100,y:100,w:symbolImg.width/2,h:symbolImg.height/2,rotation:0,scaleX:1,scaleY:1,image:symbolImg,color:null };
-      objects.push(obj); keyframes[obj.id]=[]; selected=obj; draw(); }; };
-    symbolLibraryDiv.appendChild(img);
-  });
-}
+
+// Export frames as ZIP
+document.getElementById("exportFrames").onclick = async () => {
+  loadingOverlay.style.display = "flex";
+  const zip = new JSZip();
+
+  for (let frame = 0; frame < frames; frame++) {
+    updateObjectsForFrame(frame);
+    draw();
+    const dataURL = canvas.toDataURL("image/png");
+    const blob = await (await fetch(dataURL)).blob();
+    zip.file(`frame_${String(frame).padStart(3, "0")}.png`, blob);
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = "frames.zip";
+  a.click();
+
+  loadingOverlay.style.display = "none";
+};
 
 draw();
 </script>
