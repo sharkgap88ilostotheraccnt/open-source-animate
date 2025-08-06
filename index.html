@@ -34,7 +34,7 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    width: 300px;
+    width: 320px;
   }
   button {
     background: #2e2e2e;
@@ -62,6 +62,59 @@
     font-size: 12px;
     color: #aaa;
   }
+  /* Recent projects list */
+  .recent-projects {
+    margin-top: 10px;
+    width: 100%;
+    background: #2e2e2e;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .recent-projects strong {
+    font-size: 14px;
+    color: #ffd700;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .recent-item {
+    background: #1f1f1f;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .recent-item:hover {
+    background: #444;
+  }
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: #1f1f1f;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #ffd700;
+    width: 400px;
+    text-align: center;
+  }
+  .modal-content h2 {
+    color: #ffd700;
+    margin-bottom: 10px;
+  }
+  .modal-content button {
+    margin-top: 15px;
+  }
 </style>
 </head>
 <body>
@@ -71,22 +124,75 @@
   <button onclick="window.location.href='editor.html'">🎨 New Project</button>
   <button onclick="document.getElementById('fileInput').click()">📂 Load Project</button>
   <input type="file" id="fileInput" accept=".json">
-  <button onclick="alert('Settings coming soon!')">⚙️ Settings</button>
+  <button onclick="window.location.href='symbol-editor.html'">🖼️ Open Illustrator</button>
+  <button onclick="showAbout()">ℹ️ About</button>
+  <div class="recent-projects" id="recentList">
+    <strong>Recent Projects</strong>
+  </div>
 </div>
 
-<footer>Open Animate v1.1 – Free & Open Source</footer>
+<footer>Open Animate v1.0 – Free & Open Source</footer>
+
+<!-- About Modal -->
+<div class="modal" id="aboutModal">
+  <div class="modal-content">
+    <h2>About Open Animate</h2>
+    <p>Open Animate is a free, open-source web-based animation tool inspired by Adobe Animate.</p>
+    <p>Created for creators who want full control without subscriptions.</p>
+    <button onclick="closeAbout()">Close</button>
+  </div>
+</div>
 
 <script>
-document.getElementById('fileInput').addEventListener('change', function(evt) {
+const fileInput = document.getElementById('fileInput');
+const recentList = document.getElementById('recentList');
+
+fileInput.addEventListener('change', (evt) => {
   const file = evt.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    localStorage.setItem('loadedProject', e.target.result);
+    const jsonData = e.target.result;
+    localStorage.setItem('loadedProject', jsonData);
+    saveRecent(file.name, jsonData);
     window.location.href = 'editor.html';
   };
   reader.readAsText(file);
 });
+
+// Save to recent projects
+function saveRecent(name, data) {
+  let recents = JSON.parse(localStorage.getItem('recentProjects') || '[]');
+  recents.unshift({ name, data });
+  recents = recents.slice(0, 5); // Keep last 5
+  localStorage.setItem('recentProjects', JSON.stringify(recents));
+  loadRecents();
+}
+
+// Load recent projects
+function loadRecents() {
+  let recents = JSON.parse(localStorage.getItem('recentProjects') || '[]');
+  recentList.innerHTML = '<strong>Recent Projects</strong>';
+  recents.forEach((proj, idx) => {
+    const div = document.createElement('div');
+    div.className = 'recent-item';
+    div.textContent = proj.name;
+    div.onclick = () => {
+      localStorage.setItem('loadedProject', proj.data);
+      window.location.href = 'editor.html';
+    };
+    recentList.appendChild(div);
+  });
+}
+loadRecents();
+
+// About modal
+function showAbout() {
+  document.getElementById('aboutModal').style.display = 'flex';
+}
+function closeAbout() {
+  document.getElementById('aboutModal').style.display = 'none';
+}
 </script>
 
 </body>
