@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Animate - Main Menu</title>
+<style>
+  body {
+    background: linear-gradient(160deg, #2b2b2b, #1f1f1f);
+    color: #fff;
+    font-family: "Segoe UI", sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  button {
+    background: #3a3a3a;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    margin: 10px;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 200px;
+  }
+  button:hover {
+    background: #5a5a5a;
+  }
+</style>
+</head>
+<body>
+
+<h1>Mini Animate</h1>
+<button onclick="window.location.href='editor.html'">🎨 New Project</button>
+<button onclick="document.getElementById('fileInput').click()">📂 Load Project</button>
+<input type="file" id="fileInput" style="display:none" accept=".json">
+
+<script>
+document.getElementById('fileInput').addEventListener('change', function(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    localStorage.setItem('loadedProject', e.target.result);
+    window.location.href = 'editor.html';
+  };
+  reader.readAsText(file);
+});
+</script>
+
+</body>
+</html>
