@@ -285,39 +285,41 @@ document.getElementById("exportFrames").onclick = async () => {
 
 // ---------------- MP4 Export ----------------
 
+window.addEventListener("load", () => {
+  const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+  const { fetchFile } = FFmpeg;
 
-document.getElementById("exportMP4").onclick = async () => {
-  if (!ffmpeg.isLoaded()) {
-    await ffmpeg.load();
-  }
+  document.getElementById("exportMP4").onclick = async () => {
+    if (!ffmpeg.isLoaded()) {
+      await ffmpeg.load();
+    }
 
-  // Store frames in ffmpeg memory
-  for (let frame = 0; frame < frames; frame++) {
-    updateObjectsForFrame(frame);
-    draw();
-    const dataURL = canvas.toDataURL("image/png");
-    const blob = await (await fetch(dataURL)).blob();
-    ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3, "0")}.png`, new Uint8Array(await blob.arrayBuffer()));
-  }
+    for (let frame = 0; frame < frames; frame++) {
+      updateObjectsForFrame(frame);
+      draw();
+      const dataURL = canvas.toDataURL("image/png");
+      const blob = await (await fetch(dataURL)).blob();
+      ffmpeg.FS('writeFile', `frame_${String(frame).padStart(3, "0")}.png`, new Uint8Array(await blob.arrayBuffer()));
+    }
 
-  // Encode to MP4
-  await ffmpeg.run(
-    '-framerate', '30',
-    '-i', 'frame_%03d.png',
-    '-c:v', 'libx264',
-    '-pix_fmt', 'yuv420p',
-    'output.mp4'
-  );
+    await ffmpeg.run(
+      '-framerate', '30',
+      '-i', 'frame_%03d.png',
+      '-c:v', 'libx264',
+      '-pix_fmt', 'yuv420p',
+      'output.mp4'
+    );
 
-  const data = ffmpeg.FS('readFile', 'output.mp4');
-  const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(videoBlob);
-  a.download = 'animation.mp4';
-  a.click();
+    const data = ffmpeg.FS('readFile', 'output.mp4');
+    const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(videoBlob);
+    a.download = 'animation.mp4';
+    a.click();
 
-  ffmpeg.FS('unlink', 'output.mp4'); // Cleanup
-};
+    ffmpeg.FS('unlink', 'output.mp4');
+  };
+});
 
   
 // Playhead
