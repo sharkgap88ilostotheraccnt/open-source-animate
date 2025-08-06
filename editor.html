@@ -281,7 +281,7 @@ document.getElementById("exportFrames").onclick = async () => {
 
 // ---------------- MP4 Export ----------------
 <script type="module">
-  import { createFFmpeg, fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js";
+  import { createFFmpeg, fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.mjs";
 
   const ffmpeg = createFFmpeg({ log: true });
 
@@ -315,7 +315,7 @@ document.getElementById("exportFrames").onclick = async () => {
 
     ffmpeg.FS('unlink', 'output.mp4');
   };
-</script>
+
 
   
 // Playhead
