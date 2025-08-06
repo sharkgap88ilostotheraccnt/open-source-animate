@@ -1,165 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Open Illustrator (Beta)</title>
-<style>
-  body {
-    background: #1e1e1e;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100vh;
-  }
-  #toolbar {
-    background: #333;
-    padding: 10px;
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    justify-content: center;
-  }
-  button {
-    background: #444;
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  button.active { background: #0078d7; }
-  canvas {
-    background: #fff;
-    border: 1px solid #555;
-    margin-top: 10px;
-    cursor: crosshair;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Open Illustrator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #2d2d2d; color: #fff; font-family: sans-serif; overflow: hidden; }
+    #app { display: flex; height: 100%; }
+    #toolbar {
+      width: 60px;
+      background: #343434;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      border-right: 1px solid #555;
+    }
+    #toolbar button {
+      width: 40px; height: 40px;
+      background: #4a4a4a; color: #fff;
+      border: none; margin: 5px 0;
+      cursor: pointer; font-size: 18px; border-radius: 4px;
+    }
+    #toolbar button.active { background: #0078d7; }
+    #topbar {
+      position: absolute;
+      top: 0; left: 60px; right: 0;
+      height: 48px; background: #3f3f3f;
+      display: flex; align-items: center;
+      padding: 0 10px; gap: 10px;
+      border-bottom: 1px solid #555;
+    }
+    #topbar input[type=color], #topbar input[type=number] {
+      width: auto; height: 28px;
+      border: none; border-radius: 4px;
+    }
+    #container {
+      flex: 1;
+      margin-top: 48px;
+      display: flex;
+    }
+    canvas {
+      background: #fff;
+      flex: 1;
+      cursor: crosshair;
+    }
+    .handle {
+      width: 8px;
+      height: 8px;
+      background: #ffd700;
+      border: 1px solid #000;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
+  <div id="app">
+    <div id="toolbar">
+      <button id="selectTool" title="Select">→</button>
+      <button id="rectTool" title="Rectangle">▭</button>
+      <button id="ellipseTool" title="Ellipse">◯</button>
+      <button id="lineTool" title="Line">／</button>
+      <button id="penTool" title="Pen">✎</button>
+    </div>
+    <div id="container">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div id="topbar">
+      <label>Color:<input type="color" id="colorPicker" value="#000000"></label>
+      <label>Stroke:<input type="number" id="strokeWidth" value="2" min="1" max="20"></label>
+      <button id="exportPNG">PNG</button>
+      <button id="saveJSON">JSON</button>
+    </div>
+  </div>
 
-<div id="toolbar">
-  <button id="selectTool">Select</button>
-  <button id="rectTool">Rectangle</button>
-  <button id="ellipseTool">Ellipse</button>
-  <button id="lineTool">Line</button>
-  <button id="exportPNG">Export PNG</button>
-  <button id="saveJSON">Save JSON</button>
-</div>
-
-<canvas id="editorCanvas" width="800" height="500"></canvas>
-
-<script>
-const canvas = document.getElementById('editorCanvas');
-const ctx = canvas.getContext('2d');
-
-let shapes = [];
-let currentTool = 'select';
-let isDrawing = false;
-let startX, startY;
-let selectedShape = null;
-
-function setTool(tool) {
-  currentTool = tool;
-  document.querySelectorAll('#toolbar button').forEach(b => b.classList.remove('active'));
-  document.getElementById(tool + 'Tool').classList.add('active');
-}
-
-document.getElementById('selectTool').onclick = () => setTool('select');
-document.getElementById('rectTool').onclick = () => setTool('rect');
-document.getElementById('ellipseTool').onclick = () => setTool('ellipse');
-document.getElementById('lineTool').onclick = () => setTool('line');
-
-canvas.onmousedown = (e) => {
-  const x = e.offsetX, y = e.offsetY;
-  isDrawing = true;
-  startX = x; startY = y;
-
-  if (currentTool === 'select') {
-    selectedShape = shapes.find(shape =>
-      x > shape.x && x < shape.x + shape.w &&
-      y > shape.y && y < shape.y + shape.h
-    );
+  <script>
+  const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
+  let w, h;
+  function resize() {
+    w = canvas.width = window.innerWidth - 60;
+    h = canvas.height = window.innerHeight - 48;
+    redraw();
   }
-};
+  window.addEventListener("resize", resize);
+  resize();
 
-canvas.onmousemove = (e) => {
-  if (!isDrawing) return;
-  const x = e.offsetX, y = e.offsetY;
+  let shapes = [], tool = "select", isDrawing=false, startX, startY, current=null, selected=null;
+  let resizing = false, activeHandle = null;
+  const colorPicker = document.getElementById("colorPicker"), strokeWidthInput = document.getElementById("strokeWidth");
 
-  if (currentTool === 'select' && selectedShape) {
-    selectedShape.x += x - startX;
-    selectedShape.y += y - startY;
-    startX = x; startY = y;
+  function setTool(name) {
+    tool = name;
+    document.querySelectorAll("#toolbar button").forEach(b => b.classList.toggle("active", b.id === name + "Tool"));
+    selected = null;
+    redraw();
   }
-  draw();
-};
+  ["select","rect","ellipse","line","pen"].forEach(t => {
+    document.getElementById(t+"Tool").onclick = () => setTool(t);
+  });
+  setTool("select");
 
-canvas.onmouseup = (e) => {
-  isDrawing = false;
-  const x = e.offsetX, y = e.offsetY;
-
-  if (currentTool === 'rect') {
-    shapes.push({ type: 'rect', x: startX, y: startY, w: x - startX, h: y - startY, color: '#000' });
-  }
-  if (currentTool === 'ellipse') {
-    shapes.push({ type: 'ellipse', x: startX, y: startY, w: x - startX, h: y - startY, color: '#000' });
-  }
-  if (currentTool === 'line') {
-    shapes.push({ type: 'line', x1: startX, y1: startY, x2: x, y2: y, color: '#000' });
-  }
-  draw();
-};
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  shapes.forEach(s => {
-    ctx.strokeStyle = s.color;
-    ctx.lineWidth = 2;
-    if (s.type === 'rect') ctx.strokeRect(s.x, s.y, s.w, s.h);
-    if (s.type === 'ellipse') {
-      ctx.beginPath();
-      ctx.ellipse(s.x + s.w/2, s.y + s.h/2, Math.abs(s.w/2), Math.abs(s.h/2), 0, 0, Math.PI*2);
-      ctx.stroke();
+  canvas.onmousedown = e => {
+    const x=e.offsetX, y=e.offsetY;
+    if(tool==="select" && selected){
+      const handle = getHandleAt(x,y);
+      if(handle){ resizing = true; activeHandle = handle; return; }
     }
-    if (s.type === 'line') {
-      ctx.beginPath();
-      ctx.moveTo(s.x1, s.y1);
-      ctx.lineTo(s.x2, s.y2);
-      ctx.stroke();
+    isDrawing=true; startX=x; startY=y;
+    if(tool==="select"){
+      selected = shapes.find(s => hitTest(s, x, y)) || null;
+      redraw();
+    } else {
+      current = { type: tool, x1:x, y1:y, x2:x, y2:y, points:[], color:colorPicker.value, width:parseInt(strokeWidthInput.value) };
+      if(tool==="pen") current.points.push({x,y});
+      shapes.push(current);
+    }
+  };
+
+  canvas.onmousemove = e => {
+    const x=e.offsetX, y=e.offsetY;
+    if(resizing && selected){
+      resizeShape(selected, activeHandle, x, y);
+      redraw();
+      return;
+    }
+    if(!isDrawing || !current) return;
+    current.x2 = x; current.y2 = y;
+    if(tool==="pen") current.points.push({x,y});
+    redraw();
+  };
+
+  canvas.onmouseup = () => { isDrawing=false; current=null; resizing=false; activeHandle=null; };
+
+  function hitTest(s,x,y) {
+    if(s.type==="rect") return x>=s.x1&&x<=s.x2&&y>=s.y1&&y<=s.y2;
+    if(s.type==="ellipse"){
+      const rx = (s.x2-s.x1)/2, ry=(s.y2-s.y1)/2;
+      const cx=s.x1+rx, cy=s.y1+ry;
+      return ((x-cx)*(x-cx))/(rx*rx) + ((y-cy)*(y-cy))/(ry*ry) <=1;
+    }
+    if(s.type==="line"){
+      const d = distanceToLine({x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2}, {x,y});
+      return d<5;
+    }
+    if(s.type==="pen"){
+      return s.points.some(p=>Math.hypot(p.x-x,p.y-y)<5);
+    }
+    return false;
+  }
+
+  function redraw(){
+    ctx.clearRect(0,0,w,h);
+    shapes.forEach((s)=>{
+      ctx.strokeStyle=s.color; ctx.lineWidth=s.width; ctx.beginPath();
+      if(s.type==="rect") {
+        ctx.strokeRect(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
+      } else if(s.type==="ellipse"){
+        ctx.ellipse((s.x1+s.x2)/2, (s.y1+s.y2)/2, Math.abs((s.x2-s.x1)/2), Math.abs((s.y2-s.y1)/2),0,0,2*Math.PI);
+        ctx.stroke();
+      } else if(s.type==="line"){
+        ctx.moveTo(s.x1,s.y1); ctx.lineTo(s.x2,s.y2); ctx.stroke();
+      } else if(s.type==="pen" && s.points.length){
+        ctx.moveTo(s.points[0].x, s.points[0].y);
+        s.points.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+        ctx.stroke();
+        // show draggable anchor points
+        ctx.fillStyle="#ffd700";
+        s.points.forEach(p=>ctx.fillRect(p.x-3,p.y-3,6,6));
+      }
+      if(selected===s){
+        drawHandles(s);
+      }
+    });
+  }
+
+  function drawHandles(s){
+    ctx.fillStyle="#ffd700";
+    if(s.type==="rect"||s.type==="ellipse"){
+      const handles = getHandles(s);
+      handles.forEach(h=>ctx.fillRect(h.x-4,h.y-4,8,8));
+    }
+  }
+  function getHandles(s){
+    if(s.type==="rect"||s.type==="ellipse"){
+      return [
+        {name:"tl",x:s.x1,y:s.y1},
+        {name:"tr",x:s.x2,y:s.y1},
+        {name:"bl",x:s.x1,y:s.y2},
+        {name:"br",x:s.x2,y:s.y2},
+      ];
+    }
+    return [];
+  }
+  function getHandleAt(x,y){
+    if(!selected) return null;
+    return getHandles(selected).find(h=>Math.abs(h.x-x)<6 && Math.abs(h.y-y)<6);
+  }
+  function resizeShape(s,handle,x,y){
+    if(handle.name==="tl"){ s.x1=x; s.y1=y; }
+    if(handle.name==="tr"){ s.x2=x; s.y1=y; }
+    if(handle.name==="bl"){ s.x1=x; s.y2=y; }
+    if(handle.name==="br"){ s.x2=x; s.y2=y; }
+  }
+
+  function distanceToLine(l, p){
+    const {x1,y1,x2,y2}=l;
+    const A=p.x-x1, B=p.y-y1, C=x2-x1, D=y2-y1;
+    const dot=A*C+B*D, len2=C*C+D*D, param = len2? dot/len2:-1;
+    let xx,yy;
+    if(param<0){ xx=x1; yy=y1; }
+    else if(param>1){ xx=x2; yy=y2;}
+    else { xx=x1+param*C; yy=y1+param*D; }
+    return Math.hypot(p.x-xx,p.y-yy);
+  }
+
+  document.getElementById("exportPNG").onclick = ()=>{
+    const link=document.createElement("a");
+    link.download="drawing.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  };
+  document.getElementById("saveJSON").onclick = ()=>{
+    const blob=new Blob([JSON.stringify(shapes)],{type:'application/json'});
+    const link=document.createElement("a");
+    link.download="drawing.json";
+    link.href=URL.createObjectURL(blob);
+    link.click();
+  };
+
+  window.addEventListener("keydown", e=>{
+    if((e.key==="Delete"||e.key==="Backspace") && selected){
+      shapes = shapes.filter(s=>s!==selected);
+      selected=null;
+      redraw();
     }
   });
-  if (selectedShape) {
-    ctx.setLineDash([4, 2]);
-    ctx.strokeStyle = 'blue';
-    ctx.strokeRect(selectedShape.x, selectedShape.y, selectedShape.w, selectedShape.h);
-    ctx.setLineDash([]);
-  }
-}
-
-// Export as PNG
-document.getElementById('exportPNG').onclick = () => {
-  const link = document.createElement('a');
-  link.download = 'drawing.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-};
-
-// Save as JSON
-document.getElementById('saveJSON').onclick = () => {
-  const blob = new Blob([JSON.stringify(shapes)], {type: 'application/json'});
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'drawing.json';
-  link.click();
-};
-
-setTool('select');
-draw();
-</script>
+  </script>
 </body>
 </html>
-
