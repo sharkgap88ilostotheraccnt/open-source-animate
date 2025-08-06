@@ -174,7 +174,6 @@
 <body>
 
 <div id="topToolbar">
-  <input type="color" id="colorPicker">
   <button id="addObj">Add Rectangle</button>
   <button id="addKey">Add Keyframe</button>
   <button id="play">Play</button>
@@ -223,34 +222,6 @@ let isPlaying = false;
 let symbolLibrary = [];
 
 let currentTool = "move";
-
-  const colorPicker = document.getElementById("colorPicker");
-
-
-function rgbToHex(r, g, b) {
-  return "#" + [r, g, b].map(x => {
-    const hex = x.toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
-  }).join('');
-}
-
-function hexToRgb(hex) {
-  let bigint = parseInt(hex.slice(1), 16);
-  let r = (bigint >> 16) & 255;
-  let g = (bigint >> 8) & 255;
-  let b = bigint & 255;
-  return { r, g, b };
-}
-
-// Update sliders when color input changes
-colorPicker.addEventListener("input", (e) => {
-  if (selected) {
-    selected.tint = { r, g, b };
-    draw();
-  }
-});
-
-// Update color input when sliders move
 
 
 // Playhead
@@ -448,16 +419,7 @@ function draw() {
     ctx.rotate((o.rotation || 0) * Math.PI / 180);
     ctx.scale(o.scaleX || 1, o.scaleY || 1);
    if (o.image) {
-  // Draw tinted image
-  ctx.save();
-  ctx.globalCompositeOperation = "source-over";
   ctx.drawImage(o.image, -o.w/2, -o.h/2, o.w, o.h);
-  if (o.tint) {
-    ctx.fillStyle = `rgba(${o.tint.r}, ${o.tint.g}, ${o.tint.b}, 0.5)`;
-    ctx.globalCompositeOperation = "source-atop";
-    ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
-  }
-  ctx.restore();
 } else {
   ctx.fillStyle = o.color;
   ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
