@@ -28,7 +28,8 @@ function setTool(name) {
 
 // Mouse events
 function handleMouseDown(e) {
-  const x = e.offsetX, y = e.offsetY;
+  const { x, y } = getMousePos(e);
+
   drawing = true;
   startX = x;
   startY = y;
