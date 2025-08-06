@@ -206,12 +206,11 @@
     <strong>Library</strong>
   </div>
 </div>
-  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<!-- ffmpeg.wasm for MP4 export -->
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
-
-
   
 <script>
 const canvas = document.getElementById("canvas");
@@ -264,7 +263,7 @@ if (loaded) {
   localStorage.removeItem('loadedProject');
   draw();
 }
-
+// ---------------- ZIP Export ----------------
 document.getElementById("exportFrames").onclick = async () => {
   const zip = new JSZip();
   
@@ -273,24 +272,23 @@ document.getElementById("exportFrames").onclick = async () => {
     draw();
     const dataURL = canvas.toDataURL("image/png");
     zip.file(`frame_${String(frame).padStart(3, "0")}.png`, dataURL.split(",")[1], {base64: true});
-    await new Promise(r => setTimeout(r, 10)); // Avoid blocking UI
+    await new Promise(r => setTimeout(r, 5));
   }
   
-  zip.generateAsync({ type: "blob" }).then(content => {
-    saveAs(content, "animation_frames.zip");
-  });
+  const content = await zip.generateAsync({ type: "blob" });
+  saveAs(content, "animation_frames.zip");
 };
 
+// ---------------- MP4 Export ----------------
 const ffmpeg = FFmpeg.createFFmpeg({ log: true });
 const { fetchFile } = FFmpeg;
-
 
 document.getElementById("exportMP4").onclick = async () => {
   if (!ffmpeg.isLoaded()) {
     await ffmpeg.load();
   }
 
-  // Write frames
+  // Store frames in ffmpeg memory
   for (let frame = 0; frame < frames; frame++) {
     updateObjectsForFrame(frame);
     draw();
@@ -315,8 +313,7 @@ document.getElementById("exportMP4").onclick = async () => {
   a.download = 'animation.mp4';
   a.click();
 
-  // Cleanup
-  ffmpeg.FS('unlink', 'output.mp4');
+  ffmpeg.FS('unlink', 'output.mp4'); // Cleanup
 };
 
   
