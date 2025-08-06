@@ -13,6 +13,8 @@
   <h3>Draw Symbol</h3>
   <canvas id="symbolCanvas" width="400" height="400"></canvas><br>
   <button id="save">Save Symbol</button>
+  <input type="color" id="symbolColor">
+
 
   <script>
     const c = document.getElementById("symbolCanvas");
@@ -20,6 +22,29 @@
     cx.lineWidth = 2;
     cx.lineCap = "round";
     let drawing = false;
+
+    const colorInput = document.getElementById("symbolColor");
+let currentColor = "#ff0000";
+
+colorInput.addEventListener("input", (e) => {
+  currentColor = e.target.value;
+  drawSymbol(); // refresh the symbol preview
+});
+
+// Example symbol drawing function
+function drawSymbol() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = currentColor;
+  ctx.fillRect(50, 50, 100, 100); // placeholder shape
+}
+
+// When saving
+function saveSymbol() {
+  const dataURL = canvas.toDataURL();
+  window.opener.receiveSymbol(dataURL);
+  window.close();
+}
+
 
     c.addEventListener("mousedown", e => { drawing = true; cx.beginPath(); cx.moveTo(e.offsetX, e.offsetY); });
     c.addEventListener("mousemove", e => { if (drawing) { cx.lineTo(e.offsetX, e.offsetY); cx.stroke(); } });
