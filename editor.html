@@ -3,60 +3,100 @@
 <head>
 <meta charset="UTF-8" />
 <title>Mini Animate - Editor</title>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 <style>
   body {
     background: #1c2526;
     color: #d9d9d9;
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    margin: 0; padding: 10px;
-  }
-  #topToolbar {
-    text-align: center;
-    margin-bottom: 10px;
+    margin: 0;
+    overflow: hidden;
   }
   button {
-    padding: 8px 15px;
-    margin: 0 5px;
+    padding: 8px;
+    cursor: pointer;
     background: #2e2e2e;
     color: #d9d9d9;
     border: 1px solid #444;
     border-radius: 4px;
-    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s, color 0.2s;
   }
   button:hover {
-    background: #444;
+    background: #4a4a4a;
+    color: #fff;
+  }
+  button.active {
+    background: #0078d7;
+    color: #fff;
+  }
+  #topToolbar {
+    text-align: center;
+    margin: 10px 0;
+    background: #2e2e2e;
+    padding: 8px;
+    border-bottom: 1px solid #444;
+  }
+  #mainContainer {
+    display: flex;
+    gap: 8px;
+    width: 1000px;
+    margin: 10px auto;
+    background: #252526;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+  #canvasAndTimeline {
+    flex-grow: 1;
+    position: relative;
   }
   canvas {
     background: #333;
     display: block;
-    margin: 0 auto;
+    user-select: none;
     border: 1px solid #444;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   }
   #timeline {
-    width: 600px;
-    height: 60px;
+    width: 100%;
+    height: 80px;
     background: #2e2e2e;
-    margin: 10px auto;
     position: relative;
     user-select: none;
+    border-top: 1px solid #444;
+    margin-top: 8px;
     border-radius: 4px;
   }
   .frame {
-    width: 10px;
+    width: 12px;
     height: 100%;
     border-right: 1px solid #555;
     float: left;
     position: relative;
+  }
+  .frame:nth-child(5n)::before {
+    content: attr(data-frame);
+    position: absolute;
+    top: 5px;
+    font-size: 10px;
+    color: #999;
+    text-align: center;
+    width: 12px;
   }
   .keyframe {
     width: 8px;
     height: 8px;
     background: #ffd700;
     position: absolute;
-    top: 25px;
+    top: 30px;
     cursor: pointer;
     border-radius: 50%;
     border: 1px solid #000;
+    transition: transform 0.2s;
+  }
+  .keyframe:hover {
+    transform: scale(1.3);
   }
   #playhead {
     width: 2px;
@@ -66,6 +106,61 @@
     top: 0;
     z-index: 10;
   }
+  #symbolLibrary {
+    width: 180px;
+    background: #2e2e2e;
+    color: #d9d9d9;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 6px;
+    user-select: none;
+    max-height: 480px;
+    overflow-y: auto;
+    border: 1px solid #444;
+  }
+  #symbolLibrary strong {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #e6e6e6;
+    margin-bottom: 5px;
+  }
+  #symbolLibrary img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: #333;
+    transition: border-color 0.2s;
+  }
+  #symbolLibrary img:hover {
+    border-color: #ffd700;
+  }
+  #transformToolbar {
+    width: 60px;
+    background: #2e2e2e;
+    color: #d9d9d9;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 6px;
+    user-select: none;
+    border: 1px solid #444;
+  }
+  #transformToolbar strong {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #e6e6e6;
+  }
+  #transformToolbar button {
+    font-size: 14px;
+    padding: 8px;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -74,69 +169,106 @@
   <button id="addObj">Add Rectangle</button>
   <button id="addKey">Add Keyframe</button>
   <button id="play">Play</button>
-  <button id="saveProject">💾 Save Project (JSON)</button>
-  <button id="exportPNG">🖼️ Export Current Frame PNG</button>
+  <button id="saveProject">💾 Save Project</button>
+  <button id="exportPNG">🖼️ Export PNG</button>
+  <button id="createSymbol">New Symbol</button>
+  <button id="deleteObj">Delete</button>
 </div>
 
-<canvas id="canvas" width="600" height="400"></canvas>
-<div id="timeline"></div>
+<div id="mainContainer">
+  <div id="transformToolbar">
+    <strong>Tools</strong>
+    <button id="moveTool" title="Move">↔</button>
+    <button id="scaleTool" title="Scale">⬛</button>
+    <button id="rotateTool" title="Rotate">↻</button>
+    <button id="flipH" title="Flip Horizontal">⇆</button>
+    <button id="flipV" title="Flip Vertical">⇅</button>
+  </div>
 
+  <div id="canvasAndTimeline">
+    <canvas id="canvas" width="600" height="400"></canvas>
+    <div id="timeline"></div>
+  </div>
+
+  <div id="symbolLibrary">
+    <strong>Library</strong>
+  </div>
+</div>
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const timeline = document.getElementById("timeline");
+const symbolLibraryDiv = document.getElementById("symbolLibrary");
 
 let objects = [];
-let keyframes = {};
+let selected = null;
+let dragging = false;
+let offsetX, offsetY;
+let startScale;
+let dragStartAngle;
+let startRotation;
+
 let frames = 60;
 let currentFrame = 0;
-let selected = null;
+let keyframes = {};
 let isPlaying = false;
+let symbolLibrary = [];
 
-// Playhead div
+let currentTool = "move";
+
+// Playhead
 const playhead = document.createElement("div");
 playhead.id = "playhead";
-timeline.appendChild(playhead);
 
-// Initialize timeline frames
+// Initialize timeline
 function initTimeline() {
   timeline.innerHTML = "";
   for (let i = 0; i < frames; i++) {
-    const frameDiv = document.createElement("div");
-    frameDiv.className = "frame";
-    frameDiv.dataset.frame = i;
-    timeline.appendChild(frameDiv);
+    const div = document.createElement("div");
+    div.className = "frame";
+    div.dataset.frame = i;
+    timeline.appendChild(div);
   }
   timeline.appendChild(playhead);
 }
 initTimeline();
 
 function updatePlayhead() {
-  const pos = (currentFrame / (frames - 1)) * timeline.clientWidth;
+  const timelineWidth = timeline.clientWidth;
+  const pos = (currentFrame / (frames - 1)) * timelineWidth;
   playhead.style.left = pos + "px";
 }
 
-// Timeline click to scrub frames
-timeline.addEventListener("click", e => {
-  const rect = timeline.getBoundingClientRect();
-  let x = e.clientX - rect.left;
-  if (x < 0) x = 0;
-  if (x > rect.width) x = rect.width;
-  currentFrame = Math.floor((x / rect.width) * frames);
-  updatePlayhead();
-  updateObjectsForFrame(currentFrame);
-  draw();
+// Timeline interaction
+let scrubDragging = false;
+
+timeline.addEventListener("mousedown", (e) => {
+  scrubDragging = true;
+  movePlayhead(e);
 });
 
-// Add object button
+timeline.addEventListener("mousemove", (e) => {
+  if (scrubDragging) movePlayhead(e);
+});
+
+window.addEventListener("mouseup", () => scrubDragging = false);
+
+function movePlayhead(e) {
+  const rect = timeline.getBoundingClientRect();
+  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+  const frame = Math.floor((x / rect.width) * frames);
+  currentFrame = frame;
+  updatePlayhead();
+  updateObjectsForFrame(frame);
+  draw();
+}
+
+// Toolbar buttons
 document.getElementById("addObj").onclick = () => {
-  const obj = {
-    id: Date.now(),
-    x: 100,
-    y: 100,
-    w: 80,
-    h: 80,
-    color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+  const obj = { 
+    id: Date.now(), x: 100, y: 100, w: 80, h: 80, 
+    color: `hsl(${Math.random()*360},70%,50%)`,
+    rotation: 0, scaleX: 1, scaleY: 1, image: null,
   };
   objects.push(obj);
   keyframes[obj.id] = [];
@@ -144,100 +276,25 @@ document.getElementById("addObj").onclick = () => {
   draw();
 };
 
-// Add keyframe button
 document.getElementById("addKey").onclick = () => {
-  if (!selected) return alert("Select an object first!");
-  keyframes[selected.id].push({
-    frame: currentFrame,
-    x: selected.x,
-    y: selected.y,
-    w: selected.w,
-    h: selected.h,
-  });
-  renderKeyframes();
+  if (selected) {
+    keyframes[selected.id].push({ 
+      frame: currentFrame, x: selected.x, y: selected.y, 
+      w: selected.w, h: selected.h, 
+      rotation: selected.rotation || 0, 
+      scaleX: selected.scaleX || 1, 
+      scaleY: selected.scaleY || 1
+    });
+    renderKeyframes();
+  }
 };
 
-// Render keyframes on timeline
-function renderKeyframes() {
-  document.querySelectorAll(".keyframe").forEach(kf => kf.remove());
-  for (const objId in keyframes) {
-    keyframes[objId].forEach(kf => {
-      const dot = document.createElement("div");
-      dot.className = "keyframe";
-      dot.style.left = (kf.frame * 10) + "px";
-      dot.onclick = () => {
-        currentFrame = kf.frame;
-        const obj = objects.find(o => o.id == objId);
-        if (obj) {
-          obj.x = kf.x;
-          obj.y = kf.y;
-          obj.w = kf.w;
-          obj.h = kf.h;
-          selected = obj;
-          draw();
-          updatePlayhead();
-        }
-      };
-      timeline.appendChild(dot);
-    });
-  }
-}
-
-// Update object positions between keyframes (linear tween)
-function updateObjectsForFrame(frame) {
-  objects.forEach(obj => {
-    const kfs = keyframes[obj.id];
-    if (!kfs || kfs.length < 2) return;
-    let prev = kfs[0], next = kfs[kfs.length - 1];
-    for (let i = 0; i < kfs.length - 1; i++) {
-      if (frame >= kfs[i].frame && frame <= kfs[i + 1].frame) {
-        prev = kfs[i];
-        next = kfs[i + 1];
-        break;
-      }
-    }
-    const t = (frame - prev.frame) / (next.frame - prev.frame);
-    obj.x = prev.x + (next.x - prev.x) * t;
-    obj.y = prev.y + (next.y - prev.y) * t;
-    obj.w = prev.w + (next.w - prev.w) * t;
-    obj.h = prev.h + (next.h - prev.h) * t;
-  });
-}
-
-// Draw function
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  objects.forEach(obj => {
-    ctx.fillStyle = obj.color;
-    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-    if (obj === selected) {
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(obj.x - 2, obj.y - 2, obj.w + 4, obj.h + 4);
-    }
-  });
-}
-
-// Select object on canvas click
-canvas.addEventListener("mousedown", e => {
-  const mx = e.offsetX, my = e.offsetY;
-  selected = objects.find(o => mx > o.x && mx < o.x + o.w && my > o.y && my < o.y + o.h);
-  draw();
-});
-
-// Play animation
 document.getElementById("play").onclick = () => {
   if (isPlaying) return;
   isPlaying = true;
   let frame = currentFrame;
   function animate() {
-    if (frame >= frames) {
-      isPlaying = false;
-      currentFrame = 0;
-      updatePlayhead();
-      draw();
-      return;
-    }
+    if (frame >= frames) { isPlaying = false; currentFrame = 0; updatePlayhead(); draw(); return; }
     currentFrame = frame;
     updateObjectsForFrame(frame);
     draw();
@@ -248,22 +305,233 @@ document.getElementById("play").onclick = () => {
   animate();
 };
 
-// Save project JSON
-document.getElementById("saveProject").onclick = () => {
-  const data = {
-    objects,
-    keyframes,
-    frames,
-    currentFrame,
+document.getElementById("deleteObj").onclick = () => {
+  if (!selected) return;
+  objects = objects.filter(o => o !== selected);
+  delete keyframes[selected.id];
+  selected = null;
+  draw();
+  renderKeyframes();
+};
+
+document.getElementById("createSymbol").onclick = () => {
+  window.open("symbol-editor.html", "SymbolEditor", "width=500,height=500");
+};
+
+// Transform tools
+document.getElementById("moveTool").onclick = () => { currentTool = "move"; updateToolUI(); };
+document.getElementById("scaleTool").onclick = () => { currentTool = "scale"; updateToolUI(); };
+document.getElementById("rotateTool").onclick = () => { currentTool = "rotate"; updateToolUI(); };
+
+document.getElementById("flipH").onclick = () => {
+  if (!selected) return;
+  selected.scaleX = (selected.scaleX || 1) * -1;
+  draw();
+};
+
+document.getElementById("flipV").onclick = () => {
+  if (!selected) return;
+  selected.scaleY = (selected.scaleY || 1) * -1;
+  draw();
+};
+
+function updateToolUI() {
+  ["moveTool", "scaleTool", "rotateTool"].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.classList.toggle("active", currentTool === id.replace("Tool", ""));
+  });
+}
+updateToolUI();
+
+// Canvas interaction
+function pointInObject(x, y, o) {
+  return x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h;
+}
+
+canvas.onmousedown = e => {
+  const mx = e.offsetX, my = e.offsetY;
+  if (currentTool === "move") {
+    selected = objects.find(o => pointInObject(mx, my, o));
+    if (selected) {
+      dragging = true;
+      offsetX = mx - selected.x;
+      offsetY = my - selected.y;
+    }
+  } else if (currentTool === "scale") {
+    selected = objects.find(o => pointInObject(mx, my, o));
+    if (selected) {
+      dragging = true;
+      offsetX = mx;
+      offsetY = my;
+      startScale = { w: selected.w, h: selected.h };
+    }
+  } else if (currentTool === "rotate") {
+    selected = objects.find(o => pointInObject(mx, my, o));
+    if (selected) {
+      dragging = true;
+      const cx = selected.x + selected.w/2;
+      const cy = selected.y + selected.h/2;
+      dragStartAngle = Math.atan2(my - cy, mx - cx);
+      startRotation = selected.rotation || 0;
+    }
+  }
+  draw();
+};
+
+canvas.onmousemove = e => {
+  if (!dragging || !selected) return;
+  const mx = e.offsetX, my = e.offsetY;
+
+  if (currentTool === "move") {
+    selected.x = mx - offsetX;
+    selected.y = my - offsetY;
+  } else if (currentTool === "scale") {
+    selected.w = Math.max(10, startScale.w + (mx - offsetX));
+    selected.h = Math.max(10, startScale.h + (my - offsetY));
+  } else if (currentTool === "rotate") {
+    const cx = selected.x + selected.w/2;
+    const cy = selected.y + selected.h/2;
+    const angle = Math.atan2(my - cy, mx - cx);
+    const diff = angle - dragStartAngle;
+    selected.rotation = startRotation + diff * (180/Math.PI);
+  }
+  draw();
+};
+
+canvas.onmouseup = () => dragging = false;
+
+// Draw
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  objects.forEach(o => {
+    ctx.save();
+    const cx = o.x + o.w/2;
+    const cy = o.y + o.h/2;
+    ctx.translate(cx, cy);
+    ctx.rotate((o.rotation || 0) * Math.PI / 180);
+    ctx.scale(o.scaleX || 1, o.scaleY || 1);
+    if (o.image) {
+      ctx.drawImage(o.image, -o.w/2, -o.h/2, o.w, o.h);
+    } else {
+      ctx.fillStyle = o.color;
+      ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
+    }
+    if (o === selected) {
+      ctx.strokeStyle = "#ffd700";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-o.w/2, -o.h/2, o.w, o.h);
+    }
+    ctx.restore();
+  });
+}
+
+// Keyframes
+function renderKeyframes() {
+  document.querySelectorAll(".keyframe").forEach(el => el.remove());
+  for (const objId in keyframes) {
+    keyframes[objId].forEach(kf => {
+      const dot = document.createElement("div");
+      dot.className = "keyframe";
+      dot.style.left = (kf.frame * 12 + 2) + "px";
+      dot.onclick = () => {
+        currentFrame = kf.frame;
+        const obj = objects.find(o => o.id == objId);
+        if (obj) {
+          obj.x = kf.x;
+          obj.y = kf.y;
+          obj.w = kf.w;
+          obj.h = kf.h;
+          obj.rotation = kf.rotation;
+          obj.scaleX = kf.scaleX;
+          obj.scaleY = kf.scaleY;
+          selected = obj;
+          draw();
+          updatePlayhead();
+        }
+      };
+      timeline.appendChild(dot);
+    });
+  }
+}
+
+// Interpolation
+function updateObjectsForFrame(frame) {
+  objects.forEach(obj => {
+    const keys = keyframes[obj.id];
+    if (!keys || keys.length < 2) return;
+    let prev = keys[0], next = keys[keys.length - 1];
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (frame >= keys[i].frame && frame <= keys[i+1].frame) {
+        prev = keys[i];
+        next = keys[i+1];
+        break;
+      }
+    }
+    const t = (frame - prev.frame) / (next.frame - prev.frame);
+    obj.x = prev.x + (next.x - prev.x) * t;
+    obj.y = prev.y + (next.y - prev.y) * t;
+    obj.w = prev.w + (next.w - prev.w) * t;
+    obj.h = prev.h + (next.h - prev.h) * t;
+    obj.rotation = prev.rotation + (next.rotation - prev.rotation) * t;
+    obj.scaleX = prev.scaleX + (next.scaleX - prev.scaleX) * t;
+    obj.scaleY = prev.scaleY + (next.scaleY - prev.scaleY) * t;
+  });
+}
+
+// Symbol library
+window.receiveSymbol = function(dataURL) {
+  symbolLibrary.push(dataURL);
+  updateSymbolLibrary();
+
+  const img = new Image();
+  img.src = dataURL;
+  img.onload = () => {
+    const obj = { 
+      id: Date.now(), x: 100, y: 100, w: img.width / 2, h: img.height / 2,
+      rotation: 0, scaleX: 1, scaleY: 1, image: img, color: null,
+    };
+    objects.push(obj);
+    keyframes[obj.id] = [];
+    selected = obj;
+    draw();
   };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+};
+
+function updateSymbolLibrary() {
+  symbolLibraryDiv.querySelectorAll("img").forEach(img => img.remove());
+  symbolLibrary.forEach((dataURL, index) => {
+    const img = new Image();
+    img.src = dataURL;
+    img.title = `Symbol ${index+1}`;
+    img.onclick = () => {
+      const symbolImg = new Image();
+      symbolImg.src = dataURL;
+      symbolImg.onload = () => {
+        const obj = { 
+          id: Date.now(), x: 100, y: 100, w: symbolImg.width/2, h: symbolImg.height/2,
+          rotation: 0, scaleX: 1, scaleY: 1, image: symbolImg, color: null
+        };
+        objects.push(obj);
+        keyframes[obj.id] = [];
+        selected = obj;
+        draw();
+      };
+    };
+    symbolLibraryDiv.appendChild(img);
+  });
+}
+
+// ✅ JSON Save/Load
+document.getElementById("saveProject").onclick = () => {
+  const data = JSON.stringify({ objects, keyframes, symbols: symbolLibrary });
+  const blob = new Blob([data], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "mini_animate_project.json";
+  a.download = "project.json";
   a.click();
 };
 
-// Export PNG of current frame
+// ✅ PNG Export
 document.getElementById("exportPNG").onclick = () => {
   const link = document.createElement("a");
   link.download = `frame_${currentFrame}.png`;
@@ -271,22 +539,22 @@ document.getElementById("exportPNG").onclick = () => {
   link.click();
 };
 
-// Load project if loaded from main menu
-const loaded = localStorage.getItem("loadedProject");
+// ✅ Load project if opened from main menu
+const loaded = localStorage.getItem('loadedProject');
 if (loaded) {
-  const data = JSON.parse(loaded);
-  objects = data.objects || [];
-  keyframes = data.keyframes || {};
-  frames = data.frames || 60;
-  currentFrame = data.currentFrame || 0;
-  localStorage.removeItem("loadedProject");
-  initTimeline();
-  renderKeyframes();
-  updatePlayhead();
+  const { objects: objs, keyframes: keys, symbols } = JSON.parse(loaded);
+  objects = objs;
+  keyframes = keys;
+  symbolLibrary = symbols || [];
+  updateSymbolLibrary();
+  localStorage.removeItem('loadedProject');
   draw();
 }
 
+draw();
 </script>
+
+
 
 </body>
 </html>
