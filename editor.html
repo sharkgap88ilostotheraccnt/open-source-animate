@@ -195,6 +195,9 @@
   </div>
 </div>
 <script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const timeline = document.getElementById("timeline");
@@ -208,22 +211,21 @@ let startScale;
 let dragStartAngle;
 let startRotation;
 
-let frames = 60;
 let currentFrame = 0;
+let totalFrames = 60; // will auto-grow
 let keyframes = {};
 let isPlaying = false;
 let symbolLibrary = [];
 
 let currentTool = "move";
 
-// Playhead
+// 🔑 Playhead
 const playhead = document.createElement("div");
 playhead.id = "playhead";
 
-// Initialize timeline
 function initTimeline() {
   timeline.innerHTML = "";
-  for (let i = 0; i < frames; i++) {
+  for (let i = 0; i < totalFrames; i++) {
     const div = document.createElement("div");
     div.className = "frame";
     div.dataset.frame = i;
@@ -233,49 +235,41 @@ function initTimeline() {
 }
 initTimeline();
 
+function ensureFrameCapacity(frame) {
+  if (frame >= totalFrames) {
+    totalFrames = frame + 1;
+    initTimeline();
+  }
+}
+
 function updatePlayhead() {
-  const timelineWidth = timeline.clientWidth;
-  const pos = (currentFrame / (frames - 1)) * timelineWidth;
+  const timelineWidth = timeline.scrollWidth;
+  const pos = (currentFrame / (totalFrames - 1)) * timelineWidth;
   playhead.style.left = pos + "px";
 }
 
-// Timeline interaction
+// 🎬 Scrubbing
 let scrubDragging = false;
-
-timeline.addEventListener("mousedown", (e) => {
+timeline.addEventListener("mousedown", e => {
   scrubDragging = true;
   movePlayhead(e);
 });
-
-timeline.addEventListener("mousemove", (e) => {
+timeline.addEventListener("mousemove", e => {
   if (scrubDragging) movePlayhead(e);
 });
-
 window.addEventListener("mouseup", () => scrubDragging = false);
 
 function movePlayhead(e) {
   const rect = timeline.getBoundingClientRect();
   const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-  const frame = Math.floor((x / rect.width) * frames);
+  const frame = Math.floor((x / rect.width) * totalFrames);
   currentFrame = frame;
   updatePlayhead();
   updateObjectsForFrame(frame);
   draw();
 }
 
-// Toolbar buttons
-document.getElementById("addObj").onclick = () => {
-  const obj = { 
-    id: Date.now(), x: 100, y: 100, w: 80, h: 80, 
-    color: `hsl(${Math.random()*360},70%,50%)`,
-    rotation: 0, scaleX: 1, scaleY: 1, image: null,
-  };
-  objects.push(obj);
-  keyframes[obj.id] = [];
-  selected = obj;
-  draw();
-};
-
+// 🟢 Add Keyframe dynamically increases frames
 document.getElementById("addKey").onclick = () => {
   if (selected) {
     keyframes[selected.id].push({ 
@@ -285,9 +279,32 @@ document.getElementById("addKey").onclick = () => {
       scaleX: selected.scaleX || 1, 
       scaleY: selected.scaleY || 1
     });
+    ensureFrameCapacity(currentFrame);
     renderKeyframes();
   }
 };
+
+// 🟢 Export ALL Frames as PNG ZIP
+document.getElementById("exportPNG").onclick = async () => {
+  const zip = new JSZip();
+  const maxFrame = totalFrames;
+
+  for (let frame = 0; frame < maxFrame; frame++) {
+    updateObjectsForFrame(frame);
+    draw();
+    const dataURL = canvas.toDataURL("image/png");
+    zip.file(`frame_${frame}.png`, dataURL.split(",")[1], { base64: true });
+    await new Promise(r => setTimeout(r, 10)); // prevents blocking
+  }
+
+  zip.generateAsync({ type: "blob" }).then(content => {
+    saveAs(content, "frames.zip");
+  });
+};
+
+// Everything else (drawing, symbol library, saving JSON, etc.) stays the same
+
+
 
 document.getElementById("play").onclick = () => {
   if (isPlaying) return;
@@ -532,12 +549,7 @@ document.getElementById("saveProject").onclick = () => {
 };
 
 // ✅ PNG Export
-document.getElementById("exportPNG").onclick = () => {
-  const link = document.createElement("a");
-  link.download = `frame_${currentFrame}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-};
+
 
 // ✅ Load project if opened from main menu
 const loaded = localStorage.getItem('loadedProject');
