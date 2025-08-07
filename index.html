@@ -17,9 +17,15 @@
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
-  /* Main container fills most viewport height, flex two columns */
+  /* Dark mode styles */
+  body.light-mode {
+    background: #f5f5f5;
+    color: #222;
+  }
+
   .menu-container {
     display: flex;
     flex-direction: row;
@@ -31,15 +37,21 @@
     padding: 24px 30px;
     box-sizing: border-box;
     gap: 24px;
+    transition: background 0.3s ease;
   }
 
-  /* Left side: title and buttons stacked vertically */
+  body.light-mode .menu-container {
+    background: #fff;
+    border-color: #ccc;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+
   .left-menu {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 20px;
+    gap: 16px;
   }
 
   h1 {
@@ -50,6 +62,11 @@
     letter-spacing: 0.05em;
     text-align: center;
     user-select: none;
+    transition: color 0.3s ease;
+  }
+
+  body.light-mode h1 {
+    color: #222;
   }
 
   button {
@@ -79,12 +96,20 @@
     color: #fff;
     background: #222;
   }
+  body.light-mode button {
+    border-color: #aaa;
+    color: #444;
+  }
+  body.light-mode button:hover {
+    border-color: #555;
+    color: #000;
+    background: #eee;
+  }
   button:focus {
     outline: none;
     box-shadow: 0 0 4px #555;
   }
 
-  /* Right side: recent projects list */
   .right-menu {
     width: 300px;
     background: #222;
@@ -94,6 +119,11 @@
     flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  body.light-mode .right-menu {
+    background: #fafafa;
+    border-color: #ccc;
   }
 
   .recent-projects strong {
@@ -102,6 +132,9 @@
     margin-bottom: 14px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+  body.light-mode .recent-projects strong {
+    color: #555;
   }
   .recent-item {
     background: #1c1c1c;
@@ -116,12 +149,19 @@
     text-overflow: ellipsis;
     transition: background-color 0.2s ease;
   }
+  body.light-mode .recent-item {
+    background: #eee;
+    color: #333;
+  }
   .recent-item:hover {
     background: #333;
     color: #eee;
   }
+  body.light-mode .recent-item:hover {
+    background: #ccc;
+    color: #111;
+  }
 
-  /* Footer */
   footer {
     position: fixed;
     bottom: 8px;
@@ -132,9 +172,12 @@
     user-select: none;
     font-weight: 400;
     font-family: monospace;
+    transition: color 0.3s ease;
+  }
+  body.light-mode footer {
+    color: #888;
   }
 
-  /* Modal */
   .modal {
     display: none;
     position: fixed;
@@ -152,6 +195,13 @@
     max-width: 360px;
     color: #ccc;
     font-size: 14px;
+    border-radius: 6px;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  body.light-mode .modal-content {
+    background: #fff;
+    border-color: #ccc;
+    color: #222;
   }
   .modal-content h2 {
     margin-top: 0;
@@ -161,6 +211,9 @@
     text-transform: uppercase;
     font-size: 18px;
     letter-spacing: 0.05em;
+  }
+  body.light-mode .modal-content h2 {
+    color: #222;
   }
   .modal-content p {
     line-height: 1.4;
@@ -176,37 +229,42 @@
     cursor: pointer;
     width: 100%;
     transition: all 0.2s ease;
+    border-radius: 4px;
   }
   .modal-content button:hover {
     background: #222;
     color: #fff;
     border-color: #fff;
   }
+  body.light-mode .modal-content button:hover {
+    background: #ddd;
+    color: #222;
+    border-color: #555;
+  }
 </style>
 </head>
 <body>
 
 <div class="menu-container" role="main" aria-label="Main menu">
-  <div class="left-menu">
+  <div class="left-menu" aria-label="Primary actions">
     <h1>The Open Project</h1>
     <button onclick="window.location.href='editor.html'" aria-label="New Animate Project">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34c.38-.38.38-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-      </svg>
-      New Animate Project
+      🎨 New Animate Project
     </button>
     <button onclick="window.location.href='open-illustrator.html'" aria-label="New Illustrator Project">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M12 3v10.55A4 4 0 1114 17V7h4V3h-6z"/>
-      </svg>
-      New Illustrator Project
+      🖌️ New Illustrator Project
     </button>
     <button onclick="showAbout()" aria-label="About this project">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M11 7h2v2h-2V7zm1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 11h2v6h-2v-6z"/>
-      </svg>
-      About
+      ℹ️ About
     </button>
+
+    <hr style="border-color:#444; margin: 20px 0;">
+
+    <button onclick="randomAlert()" aria-label="Random alert">⚡ Surprise Alert</button>
+    <button onclick="changeBackground()" aria-label="Change background color">🎨 Change Background</button>
+    <button onclick="toggleDarkMode()" aria-label="Toggle light/dark mode">🌗 Toggle Dark Mode</button>
+    <button onclick="showTime()" aria-label="Show current time">⏰ Show Time</button>
+    <button onclick="openQuote()" aria-label="Open inspirational quote">💡 Quote</button>
   </div>
 
   <div class="right-menu" aria-label="Recent projects">
@@ -225,6 +283,15 @@
     <p>Open Animate is a free, open-source web-based animation tool inspired by Adobe Animate.</p>
     <p>Created for creators who want full control without subscriptions.</p>
     <button onclick="closeAbout()" aria-label="Close about modal">Close</button>
+  </div>
+</div>
+
+<!-- Quote Modal -->
+<div class="modal" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
+  <div class="modal-content">
+    <h2 id="quoteTitle">Inspirational Quote</h2>
+    <p id="quoteText"></p>
+    <button onclick="closeQuote()" aria-label="Close quote modal">Close</button>
   </div>
 </div>
 
@@ -265,6 +332,48 @@
   }
   function closeAbout() {
     document.getElementById('aboutModal').style.display = 'none';
+  }
+
+  // Quote modal
+  function openQuote() {
+    const quotes = [
+      "Creativity takes courage. – Henri Matisse",
+      "Every artist was first an amateur. – Ralph Waldo Emerson",
+      "Art enables us to find ourselves and lose ourselves at the same time. – Thomas Merton",
+      "The only way to do great work is to love what you do. – Steve Jobs",
+      "Don’t wait for inspiration. It comes while working. – Henri Matisse",
+    ];
+    const quoteText = document.getElementById('quoteText');
+    const modal = document.getElementById('quoteModal');
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    quoteText.textContent = randomQuote;
+    modal.style.display = 'flex';
+    modal.querySelector('button').focus();
+  }
+  function closeQuote() {
+    document.getElementById('quoteModal').style.display = 'none';
+  }
+
+  // Random alert
+  function randomAlert() {
+    alert("Surprise! Keep creating awesome stuff!");
+  }
+
+  // Change background to random color
+  function changeBackground() {
+    const colors = ['#121212', '#1e1e1e', '#003366', '#330033', '#222222', '#004d40', '#263238'];
+    document.body.style.background = colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  // Toggle light/dark mode
+  function toggleDarkMode() {
+    document.body.classList.toggle('light-mode');
+  }
+
+  // Show current time alert
+  function showTime() {
+    const now = new Date();
+    alert("Current time: " + now.toLocaleTimeString());
   }
 </script>
 
