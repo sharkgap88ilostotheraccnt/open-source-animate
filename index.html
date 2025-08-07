@@ -7,7 +7,6 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
-  /* Base */
   body {
     margin: 0;
     height: 100vh;
@@ -20,48 +19,57 @@
     overflow: hidden;
   }
 
-  /* Container */
+  /* Main container fills most viewport height, flex two columns */
   .menu-container {
-    width: 280px;
+    display: flex;
+    flex-direction: row;
+    width: 700px;
+    height: 80vh;
     background: #1b1b1b;
     border: 1px solid #333;
     box-shadow: 0 0 6px rgba(0,0,0,0.8);
+    padding: 24px 30px;
+    box-sizing: border-box;
+    gap: 24px;
+  }
+
+  /* Left side: title and buttons stacked vertically */
+  .left-menu {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 24px 20px;
-    box-sizing: border-box;
+    justify-content: center;
+    gap: 20px;
   }
 
   h1 {
-    margin: 0 0 16px 0;
+    margin: 0 0 24px 0;
     font-weight: 600;
-    font-size: 1.8rem;
+    font-size: 2rem;
     color: #fff;
     letter-spacing: 0.05em;
     text-align: center;
     user-select: none;
   }
 
-  /* Buttons */
   button {
     background: transparent;
     border: 1.5px solid #666;
     color: #ccc;
     font-weight: 600;
     font-size: 14px;
-    padding: 10px 14px;
+    padding: 14px 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     user-select: none;
     transition: all 0.15s ease;
     text-transform: uppercase;
   }
   button svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
@@ -76,24 +84,30 @@
     box-shadow: 0 0 4px #555;
   }
 
-  /* Recent Projects */
-  .recent-projects {
-    margin-top: 16px;
-    font-size: 12px;
-    color: #888;
+  /* Right side: recent projects list */
+  .right-menu {
+    width: 300px;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
   }
+
   .recent-projects strong {
-    display: block;
-    margin-bottom: 8px;
     color: #aaa;
-    text-transform: uppercase;
+    font-size: 13px;
+    margin-bottom: 14px;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .recent-item {
-    background: #222;
-    padding: 6px 10px;
-    margin-bottom: 6px;
-    border: 1px solid #333;
+    background: #1c1c1c;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 3px;
     cursor: pointer;
     color: #bbb;
     font-size: 13px;
@@ -173,28 +187,32 @@
 <body>
 
 <div class="menu-container" role="main" aria-label="Main menu">
-  <h1>The Open Project</h1>
-  <button onclick="window.location.href='editor.html'" aria-label="New Animate Project">
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34c.38-.38.38-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-    </svg>
-    New Animate Project
-  </button>
-  <button onclick="window.location.href='open-illustrator.html'" aria-label="New Illustrator Project">
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M12 3v10.55A4 4 0 1114 17V7h4V3h-6z"/>
-    </svg>
-    New Illustrator Project
-  </button>
-  <button onclick="showAbout()" aria-label="About this project">
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M11 7h2v2h-2V7zm1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 11h2v6h-2v-6z"/>
-    </svg>
-    About
-  </button>
+  <div class="left-menu">
+    <h1>The Open Project</h1>
+    <button onclick="window.location.href='editor.html'" aria-label="New Animate Project">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34c.38-.38.38-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+      </svg>
+      New Animate Project
+    </button>
+    <button onclick="window.location.href='open-illustrator.html'" aria-label="New Illustrator Project">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 3v10.55A4 4 0 1114 17V7h4V3h-6z"/>
+      </svg>
+      New Illustrator Project
+    </button>
+    <button onclick="showAbout()" aria-label="About this project">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M11 7h2v2h-2V7zm1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 11h2v6h-2v-6z"/>
+      </svg>
+      About
+    </button>
+  </div>
 
-  <div class="recent-projects" id="recentList" aria-label="Recent projects">
-    <strong>Recent Projects</strong>
+  <div class="right-menu" aria-label="Recent projects">
+    <div class="recent-projects" id="recentList">
+      <strong>Recent Projects</strong>
+    </div>
   </div>
 </div>
 
