@@ -2,19 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Open Illustrator</title>
+  <title>Open Illustrator V1.2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: #1c1c1c; color: #e0e0e0; font-family: "Segoe UI", sans-serif; overflow: hidden; font-size: 12px; }
-    #app { display: grid; grid-template-columns: 80px 1fr 220px; grid-template-rows: 48px 1fr; height: 100%; }
-    
+    html, body { height: 100%; background: #1c1c1c; color: #e0e0e0; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; font-size: 12px; }
+    #app {
+      display: grid;
+      grid-template-columns: 80px 1fr 220px;
+      grid-template-rows: 48px 1fr 24px;
+      height: 100%;
+      gap: 0 0;
+    }
+
     /* Topbar */
     #topbar {
       grid-column: 1 / 4;
       height: 48px;
       background: #2a2a2a;
-      display: flex; align-items: center;
-      padding: 0 15px; gap: 15px;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      gap: 15px;
       border-bottom: 1px solid #444;
       font-size: 12px;
     }
@@ -50,19 +59,34 @@
       align-items: center;
       padding: 12px 0;
       border-right: 1px solid #444;
+      gap: 8px;
     }
-    #toolbar button {
-      width: 48px; height: 48px;
-      background: #3a3a3a; color: #fff;
-      border: none; margin: 6px 0;
-      cursor: pointer; font-size: 20px;
+    .tool-button {
+      width: 48px;
+      height: 48px;
+      background: #333;
+      border: none;
+      cursor: pointer;
       border-radius: 6px;
-      transition: background 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      color: #ddd;
+      box-shadow: inset 0 0 0 2px transparent;
     }
-    #toolbar button:hover { background: #505050; transform: scale(1.05); }
-    #toolbar button.active { background: #f57c00; box-shadow: 0 0 8px #f57c00; }
+    .tool-button:hover {
+      background: #444;
+      box-shadow: inset 0 0 0 2px #f57c00;
+      color: #f57c00;
+    }
+    .tool-button.active {
+      background: #f57c00;
+      color: #fff;
+      box-shadow: 0 0 8px #f57c00;
+    }
 
-    /* Right Sidebar (Future Panels) */
+    /* Right Sidebar Panels */
     #sidebar {
       grid-row: 2;
       background: #2b2b2b;
@@ -71,12 +95,12 @@
       flex-direction: column;
       padding: 10px;
       font-size: 11px;
+      gap: 12px;
     }
     .panel {
       background: #333;
       border: 1px solid #444;
       border-radius: 4px;
-      margin-bottom: 10px;
       padding: 8px;
     }
     .panel h3 {
@@ -84,6 +108,24 @@
       text-transform: uppercase;
       margin-bottom: 6px;
       color: #aaa;
+    }
+    .panel label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      user-select: none;
+    }
+    .panel input[type=color],
+    .panel input[type=number] {
+      flex-shrink: 0;
+      height: 26px;
+      border-radius: 4px;
+      border: 1px solid #555;
+      background: #1e1e1e;
+      color: white;
+      padding: 2px 6px;
     }
 
     /* Canvas Container */
@@ -93,14 +135,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
-      canvas {
-    background: #fff;
-    width: 90%;
-    height: 90%;
-    border: 1px solid #ccc;
-    cursor: crosshair;
-  }
+    canvas {
+      background: #fff;
+      width: 90%;
+      height: 90%;
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      user-select: none;
+    }
 
     /* Handles */
     .handle {
@@ -116,330 +160,435 @@
       pointer-events: auto;
       z-index: 10;
     }
+
+    /* Status Bar */
+    #statusbar {
+      grid-column: 1 / 4;
+      background: #222;
+      color: #eee;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-top: 1px solid #444;
+      display: flex;
+      justify-content: space-between;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
   <div id="app">
     <!-- Top Toolbar -->
     <div id="topbar">
-      <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
-      <label>Stroke: <input type="number" id="strokeWidth" value="2" min="1" max="20"></label>
-      <button id="undo">Undo</button>
-      <button id="redo">Redo</button>
-      <button id="exportPNG">PNG</button>
-      <button id="saveJSON">JSON</button>
+      <button id="undo" title="Undo (Ctrl+Z)">Undo</button>
+      <button id="redo" title="Redo (Ctrl+Y)">Redo</button>
+      <button id="exportPNG" title="Export PNG">PNG</button>
+      <button id="saveJSON" title="Save JSON (.oi)">Save</button>
     </div>
 
     <!-- Left Toolbar -->
-    <div id="toolbar">
-      <button id="selectTool" title="Select">🖱️</button>
-      <button id="rectTool" title="Rectangle">▭</button>
-      <button id="ellipseTool" title="Ellipse">⚪</button>
-      <button id="lineTool" title="Line">／</button>
-      <button id="penTool" title="Pen">✏️</button>
+    <div id="toolbar" role="toolbar" aria-label="Tools">
+      <button id="selectTool" class="tool-button active" title="Select Tool" aria-pressed="true" aria-label="Select Tool">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 3 21 12 3 21 8 12 3 3"></polygon>
+        </svg>
+      </button>
+      <button id="rectTool" class="tool-button" title="Rectangle Tool" aria-pressed="false" aria-label="Rectangle Tool">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="6" width="18" height="12" rx="2" ry="2"></rect>
+        </svg>
+      </button>
+      <button id="ellipseTool" class="tool-button" title="Ellipse Tool" aria-pressed="false" aria-label="Ellipse Tool">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="12" rx="9" ry="6"></ellipse>
+        </svg>
+      </button>
+      <button id="lineTool" class="tool-button" title="Line Tool" aria-pressed="false" aria-label="Line Tool">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="20" x2="20" y2="4"></line>
+        </svg>
+      </button>
+      <button id="penTool" class="tool-button" title="Pen Tool" aria-pressed="false" aria-label="Pen Tool">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 19l7-7 2 2-7 7-7-7 2-2 7 7z"></path>
+        </svg>
+      </button>
     </div>
 
     <!-- Drawing Area -->
     <div id="container">
-      <canvas id="canvas"></canvas>
+      <canvas id="canvas" tabindex="0" aria-label="Drawing Canvas"></canvas>
     </div>
 
     <!-- Right Sidebar Panels -->
     <div id="sidebar">
       <div class="panel">
-        <h3>Layers</h3>
-        <p>(Coming soon)</p>
+        <h3>Fill Color</h3>
+        <input type="color" id="fillColorPicker" value="#000000" aria-label="Fill Color Picker" />
       </div>
       <div class="panel">
-        <h3>Properties</h3>
-        <p>(Future settings)</p>
+        <h3>Stroke Color</h3>
+        <input type="color" id="strokeColorPicker" value="#000000" aria-label="Stroke Color Picker" />
       </div>
       <div class="panel">
-        <h3>Color Palette</h3>
-        <p>(Future swatches)</p>
+        <h3>Stroke Width</h3>
+        <input type="number" id="strokeWidthInput" value="2" min="1" max="20" aria-label="Stroke Width Input" />
       </div>
     </div>
+
+    <!-- Status Bar -->
+    <div id="statusbar">
+      <div id="currentTool">Tool: Select</div>
+      <div id="coords">X: 0 Y: 0</div>
+    </div>
   </div>
+
   <script>
-  const canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d");
-  let w, h;
-  let shapes = [], history = [], historyIndex = -1;
-  let tool = "select", isDrawing = false, startX, startY, current = null, selected = null;
-  let resizing = false, activeHandle = null, draggingPoint = null;
-  const colorPicker = document.getElementById("colorPicker"), strokeWidthInput = document.getElementById("strokeWidth");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let w, h;
+    let shapes = [], history = [], historyIndex = -1;
+    let tool = "select", isDrawing = false, startX, startY, current = null, selected = null;
+    let resizing = false, activeHandle = null, draggingPoint = null;
 
-  function resize() {
-    w = canvas.width = window.innerWidth - 60;
-    h = canvas.height = window.innerHeight - 48;
-    redraw();
-  }
-  window.addEventListener("resize", resize);
+    // Color & stroke inputs
+    const fillColorPicker = document.getElementById("fillColorPicker");
+    const strokeColorPicker = document.getElementById("strokeColorPicker");
+    const strokeWidthInput = document.getElementById("strokeWidthInput");
 
-  function saveState() {
-    history = history.slice(0, historyIndex + 1);
-    history.push(JSON.stringify(shapes));
-    historyIndex++;
-  }
+    // Status bar elements
+    const currentToolEl = document.getElementById("currentTool");
+    const coordsEl = document.getElementById("coords");
 
-  function undo() {
-    if (historyIndex > 0) {
-      historyIndex--;
-      shapes = JSON.parse(history[historyIndex]);
-      selected = null;
+    // Resize canvas
+    function resize() {
+      w = canvas.width = window.innerWidth - 60 - 220; // subtract toolbar and sidebar widths
+      h = canvas.height = window.innerHeight - 48 - 24; // subtract topbar and statusbar heights
       redraw();
     }
-  }
+    window.addEventListener("resize", resize);
 
-  function redo() {
-    if (historyIndex < history.length - 1) {
+    // Save state for undo/redo
+    function saveState() {
+      history = history.slice(0, historyIndex + 1);
+      history.push(JSON.stringify(shapes));
       historyIndex++;
-      shapes = JSON.parse(history[historyIndex]);
+    }
+
+    // Undo and redo
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        shapes = JSON.parse(history[historyIndex]);
+        selected = null;
+        redraw();
+      }
+    }
+    function redo() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        shapes = JSON.parse(history[historyIndex]);
+        selected = null;
+        redraw();
+      }
+    }
+
+    // Set tool and update UI
+    function setTool(name) {
+      tool = name;
+      document.querySelectorAll(".tool-button").forEach(b => {
+        b.classList.toggle("active", b.id === name + "Tool");
+        b.setAttribute("aria-pressed", b.id === name + "Tool");
+      });
       selected = null;
+      currentToolEl.textContent = "Tool: " + name.charAt(0).toUpperCase() + name.slice(1);
       redraw();
     }
-  }
+    ["select", "rect", "ellipse", "line", "pen"].forEach(t => {
+      document.getElementById(t + "Tool").onclick = () => setTool(t);
+    });
+    setTool("select");
 
-  function setTool(name) {
-    tool = name;
-    document.querySelectorAll("#toolbar button").forEach(b => b.classList.toggle("active", b.id === name + "Tool"));
-    selected = null;
-    redraw();
-  }
-  ["select", "rect", "ellipse", "line", "pen"].forEach(t => {
-    document.getElementById(t + "Tool").onclick = () => setTool(t);
-  });
-  setTool("select");
+    // Mouse position for status bar
+    function updateCoords(x, y) {
+      coordsEl.textContent = `X: ${x} Y: ${y}`;
+    }
 
-  canvas.onmousedown = e => {
-    const x = Math.max(0, Math.min(e.offsetX, w));
-    const y = Math.max(0, Math.min(e.offsetY, h));
-    if (tool === "select" && selected) {
-      const handle = getHandleAt(x, y);
-      if (handle) {
-        resizing = true;
-        activeHandle = handle;
-        return;
-      }
-      if (selected.type === "pen") {
-        draggingPoint = getPenPointAt(x, y);
-        if (draggingPoint) return;
-      }
-    }
-    if (tool === "select") {
-      selected = shapes.find(s => hitTest(s, x, y)) || null;
-      redraw();
-    } else {
-      isDrawing = true;
-      startX = x;
-      startY = y;
-      current = { type: tool, x1: x, y1: y, x2: x, y2: y, points: [], color: colorPicker.value, width: parseInt(strokeWidthInput.value) };
-      if (tool === "pen") current.points.push({ x, y });
-      shapes.push(current);
-      saveState();
-    }
-  };
+    // Drawing logic
+    canvas.onmousedown = e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.clientX - rect.left, w));
+      const y = Math.max(0, Math.min(e.clientY - rect.top, h));
 
-  canvas.onmousemove = e => {
-    const x = Math.max(0, Math.min(e.offsetX, w));
-    const y = Math.max(0, Math.min(e.offsetY, h));
-    if (resizing && selected) {
-      resizeShape(selected, activeHandle, x, y);
-      redraw();
-      return;
-    }
-    if (draggingPoint && selected) {
-      draggingPoint.x = x;
-      draggingPoint.y = y;
-      redraw();
-      return;
-    }
-    if (!isDrawing || !current) return;
-    current.x2 = x;
-    current.y2 = y;
-    if (tool === "pen") current.points.push({ x, y });
-    redraw();
-  };
+      updateCoords(Math.round(x), Math.round(y));
 
-  canvas.onmouseup = () => {
-    if (isDrawing) saveState();
-    isDrawing = false;
-    current = null;
-    resizing = false;
-    activeHandle = null;
-    draggingPoint = null;
-  };
-
-  function hitTest(s, x, y) {
-    if (s.type === "rect") {
-      const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
-      const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
-      return x >= minX && x <= maxX && y >= minY && y <= maxY;
-    }
-    if (s.type === "ellipse") {
-      const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
-      const cx = Math.min(s.x1, s.x2) + rx, cy = Math.min(s.y1, s.y2) + ry;
-      return ((x - cx) * (x - cx)) / (rx * rx) + ((y - cy) * (y - cy)) / (ry * ry) <= 1;
-    }
-    if (s.type === "line") {
-      return distanceToLine({ x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 }, { x, y }) < 5;
-    }
-    if (s.type === "pen") {
-      return s.points.some(p => Math.hypot(p.x - x, p.y - y) < 5);
-    }
-    return false;
-  }
-
-  function getPenPointAt(x, y) {
-    if (selected?.type === "pen") {
-      return selected.points.find(p => Math.hypot(p.x - x, p.y - y) < 6);
-    }
-    return null;
-  }
-
-  function redraw() {
-    ctx.clearRect(0, 0, w, h);
-    shapes.forEach(s => {
-      ctx.strokeStyle = s.color;
-      ctx.lineWidth = s.width;
-      ctx.beginPath();
-      if (s.type === "rect") {
-        const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
-        ctx.strokeRect(x, y, Math.abs(s.x2 - s.x1), Math.abs(s.y2 - s.y1));
-      } else if (s.type === "ellipse") {
-        const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
-        ctx.ellipse(
-          Math.min(s.x1, s.x2) + rx,
-          Math.min(s.y1, s.y2) + ry,
-          rx, ry, 0, 0, 2 * Math.PI
-        );
-        ctx.stroke();
-      } else if (s.type === "line") {
-        ctx.moveTo(s.x1, s.y1);
-        ctx.lineTo(s.x2, s.y2);
-        ctx.stroke();
-      } else if (s.type === "pen" && s.points.length) {
-        ctx.beginPath();
-        ctx.moveTo(s.points[0].x, s.points[0].y);
-        s.points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
-        ctx.stroke();
-        if (selected === s) {
-          ctx.fillStyle = "#ffd700";
-          s.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
+      if (tool === "select" && selected) {
+        const handle = getHandleAt(x, y);
+        if (handle) {
+          resizing = true;
+          activeHandle = handle;
+          return;
+        }
+        if (selected.type === "pen") {
+          draggingPoint = getPenPointAt(x, y);
+          if (draggingPoint) return;
         }
       }
-      if (selected === s) drawHandles(s);
-    });
-  }
+      if (tool === "select") {
+        selected = shapes.find(s => hitTest(s, x, y)) || null;
+        redraw();
+      } else {
+        isDrawing = true;
+        startX = x;
+        startY = y;
+        current = {
+          type: tool,
+          x1: x,
+          y1: y,
+          x2: x,
+          y2: y,
+          points: [],
+          fill: fillColorPicker.value,
+          color: strokeColorPicker.value,
+          width: parseInt(strokeWidthInput.value, 10)
+        };
+        if (tool === "pen") current.points.push({ x, y });
+        shapes.push(current);
+        saveState();
+      }
+    };
 
-  function drawHandles(s) {
-    document.querySelectorAll(".handle").forEach(h => h.remove());
-    const handles = getHandles(s);
-    handles.forEach(h => {
-      const div = document.createElement("div");
-      div.className = "handle";
-      div.style.left = h.x + "px";
-      div.style.top = h.y + "px";
-      document.getElementById("container").appendChild(div);
-    });
-  }
+    canvas.onmousemove = e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.clientX - rect.left, w));
+      const y = Math.max(0, Math.min(e.clientY - rect.top, h));
 
-  function getHandles(s) {
-    if (s.type === "rect" || s.type === "ellipse") {
-      const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
-      const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
-      return [
-        { name: "tl", x: minX, y: minY },
-        { name: "tr", x: maxX, y: minY },
-        { name: "bl", x: minX, y: maxY },
-        { name: "br", x: maxX, y: maxY },
-      ];
-    }
-    return [];
-  }
+      updateCoords(Math.round(x), Math.round(y));
 
-  function getHandleAt(x, y) {
-    if (!selected) return null;
-    return getHandles(selected).find(h => Math.hypot(h.x - x, h.y - y) < 6);
-  }
-
-  function resizeShape(s, handle, x, y) {
-    if (s.type === "rect" || s.type === "ellipse") {
-      if (handle.name === "tl") { s.x1 = x; s.y1 = y; }
-      else if (handle.name === "tr") { s.x2 = x; s.y1 = y; }
-      else if (handle.name === "bl") { s.x1 = x; s.y2 = y; }
-      else if (handle.name === "br") { s.x2 = x; s.y2 = y; }
-    }
-  }
-
-  function distanceToLine(l, p) {
-    const { x1, y1, x2, y2 } = l;
-    const A = p.x - x1, B = p.y - y1, C = x2 - x1, D = y2 - y1;
-    const dot = A * C + B * D, len2 = C * C + D * D;
-    const param = len2 ? dot / len2 : -1;
-    let xx, yy;
-    if (param < 0) { xx = x1; yy = y1; }
-    else if (param > 1) { xx = x2; yy = y2; }
-    else { xx = x1 + param * C; yy = y1 + param * D; }
-    return Math.hypot(p.x - xx, p.y - yy);
-  }
-
-  document.getElementById("undo").onclick = undo;
-  document.getElementById("redo").onclick = redo;
-  document.getElementById("exportPNG").onclick = () => {
-    const link = document.createElement("a");
-    link.download = "drawing.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  };
-  document.getElementById("saveJSON").onclick = () => {
-    const blob = new Blob([JSON.stringify(shapes)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.download = "new_project.oi";
-    link.href = URL.createObjectURL(blob);
-    link.click();
-  };
-
-  window.addEventListener("keydown", e => {
-    if ((e.key === "Delete" || e.key === "Backspace") && selected) {
-      shapes = shapes.filter(s => s !== selected);
-      selected = null;
-      saveState();
+      if (resizing && selected) {
+        resizeShape(selected, activeHandle, x, y);
+        redraw();
+        return;
+      }
+      if (draggingPoint && selected) {
+        draggingPoint.x = x;
+        draggingPoint.y = y;
+        redraw();
+        return;
+      }
+      if (!isDrawing || !current) return;
+      current.x2 = x;
+      current.y2 = y;
+      if (tool === "pen") current.points.push({ x, y });
       redraw();
-    } else if (e.ctrlKey && e.key === "z") {
-      undo();
-    } else if (e.ctrlKey && e.key === "y") {
-      redo();
+    };
+
+    canvas.onmouseup = () => {
+      if (isDrawing) saveState();
+      isDrawing = false;
+      current = null;
+      resizing = false;
+      activeHandle = null;
+      draggingPoint = null;
+    };
+
+    // Hit test to select shapes
+    function hitTest(s, x, y) {
+      if (s.type === "rect") {
+        const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
+        const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
+        return x >= minX && x <= maxX && y >= minY && y <= maxY;
+      }
+      if (s.type === "ellipse") {
+        const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
+        const cx = Math.min(s.x1, s.x2) + rx, cy = Math.min(s.y1, s.y2) + ry;
+        return ((x - cx) * (x - cx)) / (rx * rx) + ((y - cy) * (y - cy)) / (ry * ry) <= 1;
+      }
+      if (s.type === "line") {
+        return distanceToLine({ x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 }, { x, y }) < 5;
+      }
+      if (s.type === "pen") {
+        return s.points.some(p => Math.hypot(p.x - x, p.y - y) < 5);
+      }
+      return false;
     }
-  });
 
-    // Load project data from localStorage on startup
-window.addEventListener("DOMContentLoaded", () => {
-  const loaded = localStorage.getItem('loadedProject');
-  if (!loaded) return; // no project to load
-
-  try {
-    const projectData = JSON.parse(loaded);
-
-    // You saved just the array of shapes in localStorage, so:
-    if (Array.isArray(projectData)) {
-      shapes = projectData;
-      saveState(); // initialize history with loaded state
-      selected = null;
-      redraw();
-      console.log("Project loaded successfully.");
-    } else {
-      console.warn("Loaded project data is not an array.");
+    // Get pen point at position
+    function getPenPointAt(x, y) {
+      if (selected?.type === "pen") {
+        return selected.points.find(p => Math.hypot(p.x - x, p.y - y) < 6);
+      }
+      return null;
     }
-  } catch (e) {
-    console.error("Failed to parse loaded project data:", e);
-  }
 
-  // Clear loadedProject so reloading doesn't reload again accidentally
-  localStorage.removeItem('loadedProject');
-});
+    // Redraw canvas
+    function redraw() {
+      ctx.clearRect(0, 0, w, h);
+      shapes.forEach(s => {
+        ctx.fillStyle = s.fill || 'transparent';
+        ctx.strokeStyle = s.color || '#000';
+        ctx.lineWidth = s.width || 1;
+        ctx.beginPath();
+        if (s.type === "rect") {
+          const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
+          const width = Math.abs(s.x2 - s.x1);
+          const height = Math.abs(s.y2 - s.y1);
+          if (s.fill) ctx.fillRect(x, y, width, height);
+          ctx.strokeRect(x, y, width, height);
+        } else if (s.type === "ellipse") {
+          const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
+          const cx = Math.min(s.x1, s.x2) + rx;
+          const cy = Math.min(s.y1, s.y2) + ry;
+          ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+          if (s.fill) ctx.fill();
+          ctx.stroke();
+        } else if (s.type === "line") {
+          ctx.moveTo(s.x1, s.y1);
+          ctx.lineTo(s.x2, s.y2);
+          ctx.stroke();
+        } else if (s.type === "pen" && s.points.length) {
+          ctx.beginPath();
+          ctx.moveTo(s.points[0].x, s.points[0].y);
+          s.points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+          ctx.stroke();
+          if (selected === s) {
+            ctx.fillStyle = "#ffd700";
+            s.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
+          }
+        }
+        if (selected === s) drawHandles(s);
+      });
+    }
 
-  // Initialize canvas after all variables are defined
-  resize();
-</script>
+    // Draw resize handles
+    function drawHandles(s) {
+      document.querySelectorAll(".handle").forEach(h => h.remove());
+      const handles = getHandles(s);
+      handles.forEach(h => {
+        const div = document.createElement("div");
+        div.className = "handle";
+        div.style.left = h.x + "px";
+        div.style.top = h.y + "px";
+        document.getElementById("container").appendChild(div);
+      });
+    }
+
+    // Get handles positions for rect & ellipse
+    function getHandles(s) {
+      if (s.type === "rect" || s.type === "ellipse") {
+        const minX = Math.min(s.x1, s.x2), maxX = Math.max(s.x1, s.x2);
+        const minY = Math.min(s.y1, s.y2), maxY = Math.max(s.y1, s.y2);
+        return [
+          { name: "tl", x: minX, y: minY },
+          { name: "tr", x: maxX, y: minY },
+          { name: "bl", x: minX, y: maxY },
+          { name: "br", x: maxX, y: maxY },
+        ];
+      }
+      return [];
+    }
+
+    // Get handle at coords
+    function getHandleAt(x, y) {
+      if (!selected) return null;
+      return getHandles(selected).find(h => Math.hypot(h.x - x, h.y - y) < 6);
+    }
+
+    // Resize shape with handle
+    function resizeShape(s, handle, x, y) {
+      if (s.type === "rect" || s.type === "ellipse") {
+        if (handle.name === "tl") { s.x1 = x; s.y1 = y; }
+        else if (handle.name === "tr") { s.x2 = x; s.y1 = y; }
+        else if (handle.name === "bl") { s.x1 = x; s.y2 = y; }
+        else if (handle.name === "br") { s.x2 = x; s.y2 = y; }
+      }
+    }
+
+    // Distance from point to line
+    function distanceToLine(l, p) {
+      const { x1, y1, x2, y2 } = l;
+      const A = p.x - x1, B = p.y - y1, C = x2 - x1, D = y2 - y1;
+      const dot = A * C + B * D, len2 = C * C + D * D;
+      const param = len2 ? dot / len2 : -1;
+      let xx, yy;
+      if (param < 0) { xx = x1; yy = y1; }
+      else if (param > 1) { xx = x2; yy = y2; }
+      else { xx = x1 + param * C; yy = y1 + param * D; }
+      return Math.hypot(p.x - xx, p.y - yy);
+    }
+
+    // Undo/Redo buttons
+    document.getElementById("undo").onclick = undo;
+    document.getElementById("redo").onclick = redo;
+
+    // Export PNG
+    document.getElementById("exportPNG").onclick = () => {
+      const link = document.createElement("a");
+      link.download = "drawing.png";
+      link.href = canvas.toDataURL();
+      link.click();
+    };
+
+    // Save JSON (.oi)
+    document.getElementById("saveJSON").onclick = () => {
+      const blob = new Blob([JSON.stringify(shapes)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.download = "new_project.oi";
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    };
+
+    // Delete selected shape
+    window.addEventListener("keydown", e => {
+      if ((e.key === "Delete" || e.key === "Backspace") && selected) {
+        shapes = shapes.filter(s => s !== selected);
+        selected = null;
+        saveState();
+        redraw();
+      } else if (e.ctrlKey && e.key === "z") {
+        undo();
+      } else if (e.ctrlKey && e.key === "y") {
+        redo();
+      }
+    });
+
+    // Update canvas when color/stroke changes
+    fillColorPicker.addEventListener("input", () => {
+      if (selected) {
+        selected.fill = fillColorPicker.value;
+        saveState();
+        redraw();
+      }
+    });
+    strokeColorPicker.addEventListener("input", () => {
+      if (selected) {
+        selected.color = strokeColorPicker.value;
+        saveState();
+        redraw();
+      }
+    });
+    strokeWidthInput.addEventListener("input", () => {
+      if (selected) {
+        selected.width = parseInt(strokeWidthInput.value, 10);
+        saveState();
+        redraw();
+      }
+    });
+
+    // Update color pickers when selection changes
+    function updatePickers() {
+      if (selected) {
+        fillColorPicker.value = selected.fill || "#000000";
+        strokeColorPicker.value = selected.color || "#000000";
+        strokeWidthInput.value = selected.width || 2;
+      }
+    }
+
+    // Update pickers on selection change
+    const observer = new MutationObserver(() => updatePickers());
+    observer.observe(document.getElementById("container"), { childList: true });
+
+    // Initial resize & draw
+    resize();
+  </script>
 </body>
 </html>
