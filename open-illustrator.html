@@ -412,6 +412,32 @@
     }
   });
 
+    // Load project data from localStorage on startup
+window.addEventListener("DOMContentLoaded", () => {
+  const loaded = localStorage.getItem('loadedProject');
+  if (!loaded) return; // no project to load
+
+  try {
+    const projectData = JSON.parse(loaded);
+
+    // You saved just the array of shapes in localStorage, so:
+    if (Array.isArray(projectData)) {
+      shapes = projectData;
+      saveState(); // initialize history with loaded state
+      selected = null;
+      redraw();
+      console.log("Project loaded successfully.");
+    } else {
+      console.warn("Loaded project data is not an array.");
+    }
+  } catch (e) {
+    console.error("Failed to parse loaded project data:", e);
+  }
+
+  // Clear loadedProject so reloading doesn't reload again accidentally
+  localStorage.removeItem('loadedProject');
+});
+
   // Initialize canvas after all variables are defined
   resize();
 </script>
