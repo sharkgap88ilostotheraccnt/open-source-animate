@@ -544,7 +544,7 @@ document.getElementById("saveProject").onclick = () => {
   const blob = new Blob([data], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "project.json";
+  a.download = "project.oa";
   a.click();
 };
 
