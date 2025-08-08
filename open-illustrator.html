@@ -1,328 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Open Illustrator</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
+    html, body {
       margin: 0;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      background: #1e1e1e;
-      color: #ddd;
-    }
-
-    #menubar {
-      background: #2d2d2d;
-      padding: 5px;
-      display: flex;
-      gap: 10px;
-      border-bottom: 1px solid #444;
-    }
-
-    #menubar button {
-      background: none;
-      border: none;
-      color: #ddd;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    #main {
-      display: flex;
-      flex: 1;
+      height: 100%;
       overflow: hidden;
+      background: #1e1e1e;
+      font-family: sans-serif;
+      color: white;
     }
-
     #toolbar {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 50px;
-      background: #2a2a2a;
+      background: #333;
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 5px;
-      gap: 10px;
-      border-right: 1px solid #444;
+      padding-top: 10px;
     }
-
     #toolbar button {
       background: none;
       border: none;
-      color: #ddd;
-      font-size: 20px;
+      color: white;
+      font-size: 18px;
+      margin: 5px;
       cursor: pointer;
     }
-
-    #canvas-container {
-      flex: 1;
-      background: #2a2a2a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
+    #toolbar button.active {
+      background: #555;
     }
-
     canvas {
-      background: #fff;
-      border: 1px solid #333;
+      position: absolute;
+      left: 50px;
+      top: 0;
+      width: calc(100% - 50px);
+      height: 100%;
       cursor: crosshair;
-    }
-
-    #properties {
-      width: 200px;
-      background: #2a2a2a;
-      padding: 10px;
-      border-left: 1px solid #444;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    #properties input, #properties button {
-      width: 100%;
-    }
-
-    #layers {
-      margin-top: 10px;
-      background: #1e1e1e;
-      padding: 5px;
-      border: 1px solid #444;
-      height: 100px;
-      overflow-y: auto;
-      font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <div id="menubar">
-    <button id="exportJSON">Export JSON</button>
-    <button id="exportSVG">Export SVG</button>
-    <button id="exportPNG">Export PNG</button>
-  </div>
 
-  <div id="main">
-    <div id="toolbar">
-      <button data-tool="select">☐</button>
-      <button data-tool="rect">▭</button>
-      <button data-tool="ellipse">⬭</button>
-      <button data-tool="line">／</button>
-      <button data-tool="triangle">▲</button>
-      <button data-tool="star">★</button>
-      <button data-tool="bezier">✒</button>
-      <button data-tool="text">T</button>
-      <button data-tool="fill">🪣</button>
-      <button data-tool="eraser">⌫</button>
-    </div>
+<div id="toolbar">
+  <button data-tool="select">☐</button>
+  <button data-tool="rect">▭</button>
+  <button data-tool="ellipse">⬭</button>
+  <button data-tool="line">／</button>
+  <button data-tool="eraser">⌫</button>
+  <button data-tool="triangle">▲</button>
+  <button data-tool="star">★</button>
+  <button data-tool="text">T</button>
+  <button data-tool="bezier">✒</button>
+  <button data-tool="fill">🪣</button>
+  <button data-tool="zoom">🔍</button>
+  <button data-tool="pan">✋</button>
+</div>
 
-    <div id="canvas-container">
-      <canvas id="canvas" width="1000" height="700"></canvas>
-    </div>
+<canvas id="canvas"></canvas>
 
-    <div id="properties">
-      <label>Fill: <input type="color" id="fillColor" value="#ff0000" /></label>
-      <label>Stroke: <input type="color" id="strokeColor" value="#000000" /></label>
-      <label>Width: <input type="number" id="strokeWidth" value="2" min="0" /></label>
-      <button id="undo">Undo</button>
-      <button id="redo">Redo</button>
-      <label>Zoom: <input type="range" id="zoom" min="0.1" max="3" step="0.1" value="1"></label>
-      <div id="layers"><strong>Layers</strong></div>
-    </div>
-  </div>
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let tool = "select";
+let shapes = [];
+let isDrawing = false;
+let startX, startY;
+let zoom = 1;
+let offsetX = 0, offsetY = 0;
+let bezierPoints = [];
 
-  <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    let shapes = [], undoStack = [], redoStack = [];
-    let currentTool = "rect";
-    let isDrawing = false;
-    let startX, startY;
-    let fillColor = "#ff0000", strokeColor = "#000000", strokeWidth = 2;
-    let zoom = 1;
+function resize() {
+  canvas.width = window.innerWidth - 50;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-    function updateZoom() {
-      canvas.style.transform = `scale(${zoom})`;
-    }
+document.querySelectorAll("#toolbar button").forEach(btn => {
+  btn.onclick = () => {
+    tool = btn.dataset.tool;
+    document.querySelectorAll("#toolbar button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    bezierPoints = [];
+  };
+});
 
-    document.getElementById("zoom").oninput = e => {
-      zoom = parseFloat(e.target.value);
-      updateZoom();
-    };
-
-    document.querySelectorAll("#toolbar button").forEach(btn => {
-      btn.onclick = () => currentTool = btn.dataset.tool;
-    });
-
-    document.getElementById("fillColor").oninput = e => fillColor = e.target.value;
-    document.getElementById("strokeColor").oninput = e => strokeColor = e.target.value;
-    document.getElementById("strokeWidth").oninput = e => strokeWidth = parseInt(e.target.value);
-
-    canvas.onmousedown = e => {
-      isDrawing = true;
-      const rect = canvas.getBoundingClientRect();
-      startX = (e.clientX - rect.left) / zoom;
-      startY = (e.clientY - rect.top) / zoom;
-
-      if (currentTool === "fill") {
-        // simulate fill tool
-        shapes.push({ type: "rect", x: startX - 5, y: startY - 5, w: 10, h: 10, fill: fillColor, stroke: strokeColor, strokeWidth });
-        drawAll();
-        isDrawing = false;
-      }
-    };
-
-    canvas.onmouseup = e => {
-      if (!isDrawing) return;
-      isDrawing = false;
-      const rect = canvas.getBoundingClientRect();
-      const endX = (e.clientX - rect.left) / zoom;
-      const endY = (e.clientY - rect.top) / zoom;
-      const shape = {
-        type: currentTool,
-        x: startX,
-        y: startY,
-        w: endX - startX,
-        h: endY - startY,
-        fill: fillColor,
-        stroke: strokeColor,
-        strokeWidth,
-        text: "Text"
-      };
-      shapes.push(shape);
-      undoStack.push(shape);
-      redoStack = [];
-      drawAll();
-      updateLayers();
-    };
-
-    function drawAll() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const shape of shapes) {
-        ctx.lineWidth = shape.strokeWidth;
-        ctx.strokeStyle = shape.stroke;
-        ctx.fillStyle = shape.fill;
-        ctx.beginPath();
-        switch (shape.type) {
-          case "rect":
-            ctx.rect(shape.x, shape.y, shape.w, shape.h);
-            ctx.fill();
-            ctx.stroke();
-            break;
-          case "ellipse":
-            ctx.ellipse(shape.x + shape.w/2, shape.y + shape.h/2, Math.abs(shape.w/2), Math.abs(shape.h/2), 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-            break;
-          case "line":
-            ctx.moveTo(shape.x, shape.y);
-            ctx.lineTo(shape.x + shape.w, shape.y + shape.h);
-            ctx.stroke();
-            break;
-          case "triangle":
-            ctx.moveTo(shape.x + shape.w / 2, shape.y);
-            ctx.lineTo(shape.x, shape.y + shape.h);
-            ctx.lineTo(shape.x + shape.w, shape.y + shape.h);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            break;
-          case "star":
-            drawStar(ctx, shape.x + shape.w / 2, shape.y + shape.h / 2, 5, Math.abs(shape.w/2), Math.abs(shape.w/4));
-            ctx.fill();
-            ctx.stroke();
-            break;
-          case "text":
-            ctx.font = "16px sans-serif";
-            ctx.fillText(shape.text, shape.x, shape.y);
-            break;
-        }
-      }
-    }
-
-    function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
-      let rot = Math.PI / 2 * 3;
-      let x = cx, y = cy;
-      let step = Math.PI / spikes;
-      ctx.moveTo(cx, cy - outerRadius);
-      for (let i = 0; i < spikes; i++) {
-        x = cx + Math.cos(rot) * outerRadius;
-        y = cy + Math.sin(rot) * outerRadius;
-        ctx.lineTo(x, y);
-        rot += step;
-
-        x = cx + Math.cos(rot) * innerRadius;
-        y = cy + Math.sin(rot) * innerRadius;
-        ctx.lineTo(x, y);
-        rot += step;
-      }
-      ctx.lineTo(cx, cy - outerRadius);
+function drawShape(shape) {
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(zoom, zoom);
+  ctx.beginPath();
+  switch (shape.type) {
+    case "rect":
+      ctx.rect(shape.x, shape.y, shape.w, shape.h);
+      break;
+    case "ellipse":
+      ctx.ellipse(shape.x + shape.w / 2, shape.y + shape.h / 2, Math.abs(shape.w / 2), Math.abs(shape.h / 2), 0, 0, 2 * Math.PI);
+      break;
+    case "line":
+      ctx.moveTo(shape.x, shape.y);
+      ctx.lineTo(shape.x2, shape.y2);
+      break;
+    case "triangle":
+      ctx.moveTo(shape.x + shape.w / 2, shape.y);
+      ctx.lineTo(shape.x, shape.y + shape.h);
+      ctx.lineTo(shape.x + shape.w, shape.y + shape.h);
       ctx.closePath();
+      break;
+    case "star":
+      let cx = shape.x + shape.w / 2;
+      let cy = shape.y + shape.h / 2;
+      let spikes = 5;
+      let outer = Math.min(shape.w, shape.h) / 2;
+      let inner = outer / 2;
+      let rot = Math.PI / 2 * 3;
+      let step = Math.PI / spikes;
+      ctx.moveTo(cx, cy - outer);
+      for (let i = 0; i < spikes; i++) {
+        ctx.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer);
+        rot += step;
+        ctx.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner);
+        rot += step;
+      }
+      ctx.lineTo(cx, cy - outer);
+      ctx.closePath();
+      break;
+    case "bezier":
+      ctx.moveTo(shape.p0.x, shape.p0.y);
+      ctx.bezierCurveTo(shape.p1.x, shape.p1.y, shape.p2.x, shape.p2.y, shape.p3.x, shape.p3.y);
+      break;
+    case "text":
+      ctx.font = "16px sans-serif";
+      ctx.fillText(shape.text, shape.x, shape.y);
+      break;
+  }
+  ctx.fillStyle = shape.fill || "#fff";
+  ctx.fill();
+  ctx.strokeStyle = shape.stroke || "#000";
+  ctx.stroke();
+  ctx.restore();
+}
+
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (const shape of shapes) {
+    drawShape(shape);
+  }
+}
+
+canvas.onmousedown = (e) => {
+  const mx = (e.offsetX - offsetX) / zoom;
+  const my = (e.offsetY - offsetY) / zoom;
+  startX = mx;
+  startY = my;
+  isDrawing = true;
+
+  if (tool === "bezier") {
+    bezierPoints.push({ x: mx, y: my });
+    if (bezierPoints.length === 4) {
+      shapes.push({ type: "bezier", p0: bezierPoints[0], p1: bezierPoints[1], p2: bezierPoints[2], p3: bezierPoints[3] });
+      bezierPoints = [];
+      redraw();
     }
+    return;
+  }
 
-    document.getElementById("undo").onclick = () => {
-      if (shapes.length) {
-        redoStack.push(shapes.pop());
-        drawAll();
-        updateLayers();
-      }
-    };
+  if (tool === "fill") {
+    // Simple placeholder for fill: flood-fill not implemented
+    shapes.push({ type: "rect", x: mx - 5, y: my - 5, w: 10, h: 10, fill: "#0cf", stroke: "#0cf" });
+    redraw();
+    return;
+  }
 
-    document.getElementById("redo").onclick = () => {
-      if (redoStack.length) {
-        shapes.push(redoStack.pop());
-        drawAll();
-        updateLayers();
-      }
-    };
-
-    document.getElementById("exportJSON").onclick = () => {
-      const blob = new Blob([JSON.stringify(shapes, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "drawing.json";
-      a.click();
-    };
-
-    document.getElementById("exportSVG").onclick = () => {
-      let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}">`;
-      for (const shape of shapes) {
-        switch (shape.type) {
-          case "rect":
-            svg += `<rect x="${shape.x}" y="${shape.y}" width="${shape.w}" height="${shape.h}" fill="${shape.fill}" stroke="${shape.stroke}" stroke-width="${shape.strokeWidth}"/>`;
-            break;
-          case "ellipse":
-            svg += `<ellipse cx="${shape.x + shape.w / 2}" cy="${shape.y + shape.h / 2}" rx="${Math.abs(shape.w / 2)}" ry="${Math.abs(shape.h / 2)}" fill="${shape.fill}" stroke="${shape.stroke}" stroke-width="${shape.strokeWidth}"/>`;
-            break;
-        }
-      }
-      svg += "</svg>";
-      const blob = new Blob([svg], { type: "image/svg+xml" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "drawing.svg";
-      a.click();
-    };
-
-    document.getElementById("exportPNG").onclick = () => {
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.download = "drawing.png";
-      a.click();
-    };
-
-    function updateLayers() {
-      const layerBox = document.getElementById("layers");
-      layerBox.innerHTML = "<strong>Layers</strong>";
-      [...shapes].reverse().forEach((shape, i) => {
-        const div = document.createElement("div");
-        div.textContent = `${shape.type} (${Math.round(shape.x)},${Math.round(shape.y)})`;
-        layerBox.appendChild(div);
-      });
+  if (tool === "text") {
+    const text = prompt("Enter text:");
+    if (text) {
+      shapes.push({ type: "text", x: mx, y: my, text: text });
+      redraw();
     }
+    return;
+  }
+};
 
-    drawAll();
-  </script>
+canvas.onmousemove = (e) => {
+  if (!isDrawing) return;
+  const mx = (e.offsetX - offsetX) / zoom;
+  const my = (e.offsetY - offsetY) / zoom;
+
+  if (tool === "pan") {
+    offsetX += e.movementX;
+    offsetY += e.movementY;
+    redraw();
+    return;
+  }
+
+  redraw();
+
+  if (["rect", "ellipse", "triangle", "star", "line"].includes(tool)) {
+    const tempShape = {
+      type: tool,
+      x: startX,
+      y: startY,
+      w: mx - startX,
+      h: my - startY,
+      x2: mx,
+      y2: my
+    };
+    drawShape(tempShape);
+  }
+};
+
+canvas.onmouseup = (e) => {
+  if (!isDrawing) return;
+  isDrawing = false;
+  const mx = (e.offsetX - offsetX) / zoom;
+  const my = (e.offsetY - offsetY) / zoom;
+
+  if (["rect", "ellipse", "triangle", "star", "line"].includes(tool)) {
+    shapes.push({
+      type: tool,
+      x: startX,
+      y: startY,
+      w: mx - startX,
+      h: my - startY,
+      x2: mx,
+      y2: my
+    });
+    redraw();
+  }
+};
+
+canvas.addEventListener("wheel", (e) => {
+  if (tool === "zoom") {
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    zoom *= delta;
+    redraw();
+  }
+});
+</script>
 </body>
 </html>
