@@ -313,74 +313,82 @@
       coordsEl.textContent = `X: ${x} Y: ${y}`;
     }
 
-    // Drawing logic
-    canvas.onmousedown = e => {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.max(0, Math.min(e.clientX - rect.left, w));
-      const y = Math.max(0, Math.min(e.clientY - rect.top, h));
+    // Inside the script, modify the mouse event handlers
+canvas.onmousedown = e => {
+  const rect = canvas.getBoundingClientRect();
+  // Calculate scaling factors
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  // Scale mouse coordinates to match canvas resolution
+  const x = Math.max(0, Math.min((e.clientX - rect.left) * scaleX, canvas.width));
+  const y = Math.max(0, Math.min((e.clientY - rect.top) * scaleY, canvas.height));
 
-      updateCoords(Math.round(x), Math.round(y));
+  updateCoords(Math.round(x), Math.round(y));
 
-      if (tool === "select" && selected) {
-        const handle = getHandleAt(x, y);
-        if (handle) {
-          resizing = true;
-          activeHandle = handle;
-          return;
-        }
-        if (selected.type === "pen") {
-          draggingPoint = getPenPointAt(x, y);
-          if (draggingPoint) return;
-        }
-      }
-      if (tool === "select") {
-        selected = shapes.find(s => hitTest(s, x, y)) || null;
-        redraw();
-      } else {
-        isDrawing = true;
-        startX = x;
-        startY = y;
-        current = {
-          type: tool,
-          x1: x,
-          y1: y,
-          x2: x,
-          y2: y,
-          points: [],
-          fill: fillColorPicker.value,
-          color: strokeColorPicker.value,
-          width: parseInt(strokeWidthInput.value, 10)
-        };
-        if (tool === "pen") current.points.push({ x, y });
-        shapes.push(current);
-        saveState();
-      }
+  if (tool === "select" && selected) {
+    const handle = getHandleAt(x, y);
+    if (handle) {
+      resizing = true;
+      activeHandle = handle;
+      return;
+    }
+    if (selected.type === "pen") {
+      draggingPoint = getPenPointAt(x, y);
+      if (draggingPoint) return;
+    }
+  }
+  if (tool === "select") {
+    selected = shapes.find(s => hitTest(s, x, y)) || null;
+    redraw();
+  } else {
+    isDrawing = true;
+    startX = x;
+    startY = y;
+    current = {
+      type: tool,
+      x1: x,
+      y1: y,
+      x2: x,
+      y2: y,
+      points: [],
+      fill: fillColorPicker.value,
+      color: strokeColorPicker.value,
+      width: parseInt(strokeWidthInput.value, 10)
     };
+    if (tool === "pen") current.points.push({ x, y });
+    shapes.push(current);
+    saveState();
+  }
+};
 
-    canvas.onmousemove = e => {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.max(0, Math.min(e.clientX - rect.left, w));
-      const y = Math.max(0, Math.min(e.clientY - rect.top, h));
+canvas.onmousemove = e => {
+  const rect = canvas.getBoundingClientRect();
+  // Calculate scaling factors
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  // Scale mouse coordinates to match canvas resolution
+  const x = Math.max(0, Math.min((e.clientX - rect.left) * scaleX, canvas.width));
+  const y = Math.max(0, Math.min((e.clientY - rect.top) * scaleY, canvas.height));
 
-      updateCoords(Math.round(x), Math.round(y));
+  updateCoords(Math.round(x), Math.round(y));
 
-      if (resizing && selected) {
-        resizeShape(selected, activeHandle, x, y);
-        redraw();
-        return;
-      }
-      if (draggingPoint && selected) {
-        draggingPoint.x = x;
-        draggingPoint.y = y;
-        redraw();
-        return;
-      }
-      if (!isDrawing || !current) return;
-      current.x2 = x;
-      current.y2 = y;
-      if (tool === "pen") current.points.push({ x, y });
-      redraw();
-    };
+  if (resizing && selected) {
+    resizeShape(selected, activeHandle, x, y);
+    redraw();
+    return;
+  }
+  if (draggingPoint && selected) {
+    draggingPoint.x = x;
+    draggingPoint.y = y;
+    redraw();
+    return;
+  }
+  if (!isDrawing || !current) return;
+  current.x2 = x;
+  current.y2 = y;
+  if (tool === "pen") current.points.push({ x, y });
+  redraw();
+};
 
     canvas.onmouseup = () => {
       if (isDrawing) saveState();
