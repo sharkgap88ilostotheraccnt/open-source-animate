@@ -254,6 +254,9 @@
     <button onclick="window.location.href='open-illustrator.html'" aria-label="New Illustrator Project">
       🖌️ New Illustrator Project
     </button>
+    <input type="file" accept=".oa,.oi" style="display: none;" id="fileInput">
+<button onclick="document.getElementById('fileInput').click()">📂 Open File</button>
+
     <button onclick="showAbout()" aria-label="About this project">
       ℹ️ About
     </button>
@@ -333,6 +336,18 @@
   function closeAbout() {
     document.getElementById('aboutModal').style.display = 'none';
   }
+
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    localStorage.setItem('loadedProject', e.target.result);
+    window.location.href = file.name.endsWith('.oi') ? 'open-illustrator.html' : 'editor.html';
+  };
+  reader.readAsText(file);
+});
+
 
   // Quote modal
   function openQuote() {
