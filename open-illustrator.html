@@ -2,38 +2,47 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Open Illustrator V2.1</title>
+<title>Open Illustrator V2.0 - Toolbox with settings bar</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: #1c1c1c; color: #e0e0e0; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; font-size: 12px; }
-  #app {
-    display: grid;
-    grid-template-columns: 80px 1fr 240px;
-    grid-template-rows: 48px 1fr 24px;
-    height: 100vh;
-    gap: 0 0;
+  * {
+    box-sizing: border-box;
   }
-
-  /* Topbar */
-  #topbar {
-    grid-column: 1 / 4;
-    height: 48px;
-    background: #2a2a2a;
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
-    gap: 10px;
-    border-bottom: 1px solid #444;
+  html, body {
+    height: 100%;
+    margin: 0; padding: 0;
+    background: #1c1c1c;
+    color: #e0e0e0;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+    overflow: hidden;
     font-size: 12px;
   }
-  #topbar button, #topbar input[type=color], #topbar input[type=number] {
+
+  body, #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Topbar with undo, redo, export, save */
+  #topbar {
+    height: 48px;
+    background: #2a2a2a;
+    border-bottom: 1px solid #444;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+  }
+  #topbar button {
     height: 28px;
     border: 1px solid #555;
     background: #1e1e1e;
     color: white;
     border-radius: 4px;
-    padding: 0 8px;
+    padding: 0 12px;
     cursor: pointer;
     font-size: 12px;
     user-select: none;
@@ -42,112 +51,117 @@
     background: #f57c00;
     border-color: #f57c00;
   }
-  #topbar input[type=number] {
-    width: 50px;
+
+  /* Main content area below topbar */
+  #main {
+    flex: 1;
+    display: flex;
+    background: #1c1c1c;
   }
 
-  /* Left Toolbar */
-  #toolbar {
-    grid-row: 2;
-    background: #2b2b2b;
+  /* Toolbox container on left with settings bar under */
+  #toolbox-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 10px 0;
-    border-right: 1px solid #444;
-    gap: 10px;
+    width: 160px;
+    border-right: 2px solid #444;
+    background: #2b2b2b;
   }
-  .tool-button {
-    width: 48px;
-    height: 48px;
+
+  /* Toolbox big box */
+  #toolbox {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px;
+    box-sizing: border-box;
     background: #333;
-    border: none;
+    border-bottom: 2px solid #444;
+    user-select: none;
+  }
+  .tool-btn {
+    background: #444;
+    border: 2px solid transparent;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
+    color: #ddd;
+    font-size: 32px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    color: #ddd;
-    box-shadow: inset 0 0 0 2px transparent;
     user-select: none;
-    font-size: 20px;
-    line-height: 1;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+    height: 80px;
+    padding: 6px 0;
   }
-  .tool-button:hover {
-    background: #444;
-    box-shadow: inset 0 0 0 2px #f57c00;
+  .tool-btn small {
+    font-size: 11px;
+    margin-top: 4px;
+    color: #bbb;
+  }
+  .tool-btn:hover {
+    background: #555;
+    border-color: #f57c00;
     color: #f57c00;
   }
-  .tool-button.active {
+  .tool-btn.selected {
     background: #f57c00;
-    color: #fff;
-    box-shadow: 0 0 8px #f57c00;
+    color: #222;
+    border-color: #f57c00;
+    font-weight: 700;
   }
 
-  /* Right Sidebar */
-  #sidebar {
-    grid-row: 2;
-    background: #2b2b2b;
-    border-left: 1px solid #444;
+  /* Settings bar below toolbox */
+  #settings-bar {
+    padding: 10px 12px;
     display: flex;
-    flex-direction: column;
-    padding: 12px;
-    font-size: 12px;
-    gap: 15px;
-  }
-  .panel {
+    gap: 12px;
     background: #333;
-    border: 1px solid #444;
-    border-radius: 4px;
-    padding: 10px;
-  }
-  .panel h3 {
-    font-size: 12px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    color: #aaa;
-  }
-  .panel label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
+    border-top: 2px solid #444;
     user-select: none;
   }
-  .panel input[type=color],
-  .panel input[type=number] {
-    flex-shrink: 0;
-    height: 28px;
+  #settings-bar > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    font-size: 12px;
+  }
+  #settings-bar label {
+    font-size: 11px;
+    color: #ccc;
+  }
+  #settings-bar input[type=color],
+  #settings-bar input[type=number] {
     border-radius: 4px;
     border: 1px solid #555;
     background: #1e1e1e;
     color: white;
+    height: 28px;
     padding: 0 8px;
     font-size: 12px;
   }
-  .panel input[type=number] {
-    width: 60px;
+  #settings-bar input[type=number] {
+    width: 100%;
   }
 
-  /* Canvas container */
-  #container {
-    grid-row: 2;
+  /* Canvas area fills rest of space */
+  #canvas-container {
+    flex: 1;
     background: #2d2d2d;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
   }
   canvas {
-    background: #fff;
+    background: white;
+    border: 1px solid #ccc;
     width: 90%;
     height: 90%;
-    border: 1px solid #ccc;
     cursor: crosshair;
     user-select: none;
-    display: block;
   }
 
   /* Handles */
@@ -165,14 +179,14 @@
     z-index: 10;
   }
 
-  /* Status Bar */
+  /* Status bar below everything */
   #statusbar {
-    grid-column: 1 / 4;
+    height: 24px;
     background: #222;
+    border-top: 1px solid #444;
     color: #eee;
     font-size: 12px;
     padding: 4px 12px;
-    border-top: 1px solid #444;
     display: flex;
     justify-content: space-between;
     user-select: none;
@@ -180,77 +194,67 @@
 </style>
 </head>
 <body>
-<div id="app">
-  <!-- Topbar -->
-  <div id="topbar" role="toolbar" aria-label="Main Toolbar">
-    <button id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
-    <button id="redoBtn" title="Redo (Ctrl+Y)">Redo</button>
-    <button id="exportPNGBtn" title="Export as PNG">Export PNG</button>
-    <button id="saveJSONBtn" title="Save as JSON">Save</button>
-  </div>
-
-  <!-- Left Toolbar -->
-  <div id="toolbar" role="toolbar" aria-label="Drawing Tools">
-    <button id="selectTool" class="tool-button active" aria-pressed="true" title="Select Tool">🔲</button>
-    <button id="rectTool" class="tool-button" aria-pressed="false" title="Rectangle Tool">⬛</button>
-    <button id="ellipseTool" class="tool-button" aria-pressed="false" title="Ellipse Tool">⚪</button>
-    <button id="lineTool" class="tool-button" aria-pressed="false" title="Line Tool">➖</button>
-    <button id="penTool" class="tool-button" aria-pressed="false" title="Pen Tool">✏️</button>
-    <button id="eraserTool" class="tool-button" aria-pressed="false" title="Eraser Tool">🩹</button>
-    <button id="polygonTool" class="tool-button" aria-pressed="false" title="Polygon Tool">🔷</button>
-    <button id="bezierTool" class="tool-button" aria-pressed="false" title="Bezier Tool">〰️</button>
-    <button id="textTool" class="tool-button" aria-pressed="false" title="Text Tool">🅰️</button>
-
-    <!-- New Tools -->
-    <button id="triangleTool" class="tool-button" aria-pressed="false" title="Triangle Tool">🔺</button>
-    <button id="starTool" class="tool-button" aria-pressed="false" title="Star Tool">⭐</button>
-    <button id="fillTool" class="tool-button" aria-pressed="false" title="Fill Bucket Tool">🪣</button>
-    <button id="zoomTool" class="tool-button" aria-pressed="false" title="Zoom/Pan Tool">🔍</button>
-  </div>
-
-  <!-- Canvas Container -->
-  <div id="container">
-    <canvas id="canvas" tabindex="0" aria-label="Drawing Canvas"></canvas>
-  </div>
-
-  <!-- Right Sidebar -->
-  <div id="sidebar">
-    <div class="panel">
-      <h3>Fill Color</h3>
-      <input type="color" id="fillColorPicker" value="#000000" aria-label="Fill Color Picker" />
+  <div id="app">
+    <div id="topbar" role="toolbar" aria-label="Main Toolbar">
+      <button id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
+      <button id="redoBtn" title="Redo (Ctrl+Y)">Redo</button>
+      <button id="exportPNGBtn" title="Export as PNG">Export PNG</button>
+      <button id="saveJSONBtn" title="Save as JSON">Save</button>
     </div>
-    <div class="panel">
-      <h3>Stroke Color</h3>
-      <input type="color" id="strokeColorPicker" value="#000000" aria-label="Stroke Color Picker" />
+    <div id="main">
+      <div id="toolbox-container" aria-label="Toolbox and settings">
+        <div id="toolbox" role="toolbar" aria-label="Drawing Tools">
+          <button class="tool-btn selected" data-tool="select" title="Select Tool">🔲<small>Select</small></button>
+          <button class="tool-btn" data-tool="rect" title="Rectangle Tool">▭<small>Rectangle</small></button>
+          <button class="tool-btn" data-tool="ellipse" title="Ellipse Tool">⚪<small>Ellipse</small></button>
+          <button class="tool-btn" data-tool="line" title="Line Tool">➖<small>Line</small></button>
+          <button class="tool-btn" data-tool="pen" title="Pen Tool">✏️<small>Pen</small></button>
+          <button class="tool-btn" data-tool="eraser" title="Eraser Tool">🩹<small>Eraser</small></button>
+          <button class="tool-btn" data-tool="polygon" title="Polygon Tool">🔷<small>Polygon</small></button>
+          <button class="tool-btn" data-tool="bezier" title="Bezier Tool">〰️<small>Bezier</small></button>
+          <button class="tool-btn" data-tool="text" title="Text Tool">🅰️<small>Text</small></button>
+        </div>
+        <div id="settings-bar" aria-label="Tool Settings">
+          <div>
+            <label for="fillColorPicker">Fill Color</label>
+            <input type="color" id="fillColorPicker" value="#000000" aria-label="Fill Color Picker" />
+          </div>
+          <div>
+            <label for="strokeColorPicker">Stroke Color</label>
+            <input type="color" id="strokeColorPicker" value="#000000" aria-label="Stroke Color Picker" />
+          </div>
+          <div>
+            <label for="strokeWidthInput">Stroke Width</label>
+            <input type="number" id="strokeWidthInput" value="2" min="1" max="20" aria-label="Stroke Width Input" />
+          </div>
+          <div>
+            <label for="polygonSidesInput">Polygon Sides</label>
+            <input type="number" id="polygonSidesInput" value="5" min="3" max="12" aria-label="Polygon Sides Input" />
+          </div>
+        </div>
+      </div>
+      <div id="canvas-container">
+        <canvas id="canvas" tabindex="0" aria-label="Drawing Canvas"></canvas>
+      </div>
     </div>
-    <div class="panel">
-      <h3>Stroke Width</h3>
-      <input type="number" id="strokeWidthInput" value="2" min="1" max="20" aria-label="Stroke Width Input" />
-    </div>
-    <div class="panel">
-      <h3>Polygon Sides</h3>
-      <input type="number" id="polygonSidesInput" value="5" min="3" max="12" aria-label="Polygon Sides Input" />
+    <div id="statusbar" role="status" aria-live="polite">
+      <div id="currentTool">Tool: Select</div>
+      <div id="coords">X: 0 Y: 0</div>
     </div>
   </div>
-
-  <!-- Status Bar -->
-  <div id="statusbar" role="status" aria-live="polite">
-    <div id="currentTool">Tool: Select</div>
-    <div id="coords">X: 0 Y: 0</div>
-  </div>
-</div>
 
 <script>
 (() => {
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
-  const container = document.getElementById("container");
+  const container = document.getElementById("canvas-container");
   const fillColorPicker = document.getElementById("fillColorPicker");
   const strokeColorPicker = document.getElementById("strokeColorPicker");
   const strokeWidthInput = document.getElementById("strokeWidthInput");
   const polygonSidesInput = document.getElementById("polygonSidesInput");
   const currentToolEl = document.getElementById("currentTool");
   const coordsEl = document.getElementById("coords");
+  const toolbox = document.getElementById("toolbox");
 
   let w, h;
   let shapes = [];
@@ -264,59 +268,36 @@
   let selectedShape = null;
   let resizing = false;
   let activeHandle = null;
-  let draggingPoint = null;
-
-  // Zoom & Pan state
-  let zoomLevel = 1;
-  let panX = 0;
-  let panY = 0;
-  let isPanning = false;
-  let panStart = null;
 
   // For Bezier Tool
   let bezierPoints = [];
 
-  // Resize canvas based on container size
   function resize() {
     const rect = container.getBoundingClientRect();
-    canvas.width = rect.width * 0.9;
-    canvas.height = rect.height * 0.9;
+    canvas.width = rect.width * 0.95;
+    canvas.height = rect.height * 0.95;
     w = canvas.width;
     h = canvas.height;
     redraw();
   }
   window.addEventListener("resize", resize);
 
-  // Convert mouse event to canvas coordinates with scaling compensation + zoom/pan
   function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     let x = (e.clientX - rect.left) * scaleX;
     let y = (e.clientY - rect.top) * scaleY;
-
-    // Apply zoom and pan inverse transform:
-    x = (x - panX) / zoomLevel;
-    y = (y - panY) / zoomLevel;
-
-    // Clamp inside canvas bounds
     x = Math.min(Math.max(0, x), canvas.width);
     y = Math.min(Math.max(0, y), canvas.height);
     return { x, y };
   }
 
-  // Transform drawing context for zoom and pan
-  function applyZoomPan() {
-    ctx.setTransform(zoomLevel, 0, 0, zoomLevel, panX, panY);
-  }
-
-  // Save current shapes state to history for undo/redo
   function saveState() {
     history = history.slice(0, historyIndex + 1);
     history.push(JSON.stringify(shapes));
     historyIndex++;
   }
-
   function undo() {
     if (historyIndex > 0) {
       historyIndex--;
@@ -325,7 +306,6 @@
       redraw();
     }
   }
-
   function redo() {
     if (historyIndex < history.length - 1) {
       historyIndex++;
@@ -335,38 +315,28 @@
     }
   }
 
-  // Set tool and update UI
   function setTool(name) {
     tool = name;
-    document.querySelectorAll(".tool-button").forEach(b => {
-      const isActive = b.id === name + "Tool";
-      b.classList.toggle("active", isActive);
-      b.setAttribute("aria-pressed", isActive);
+    [...toolbox.querySelectorAll(".tool-btn")].forEach(b => {
+      const isActive = b.dataset.tool === name;
+      b.classList.toggle("selected", isActive);
+      b.setAttribute("aria-pressed", isActive ? "true" : "false");
     });
     selectedShape = null;
     bezierPoints = [];
-    isDrawing = false;
-    isPanning = false;
     currentToolEl.textContent = "Tool: " + name.charAt(0).toUpperCase() + name.slice(1);
     redraw();
   }
-
-  // Tool buttons handlers
-  [
-    "select", "rect", "ellipse", "line", "pen", "eraser", "polygon",
-    "bezier", "text", "triangle", "star", "fill", "zoom"
-  ].forEach(t => {
-    const btn = document.getElementById(t + "Tool");
-    if(btn) btn.onclick = () => setTool(t);
+  toolbox.addEventListener("click", e => {
+    const btn = e.target.closest(".tool-btn");
+    if (!btn) return;
+    const newTool = btn.dataset.tool;
+    if (newTool) setTool(newTool);
   });
   setTool("select");
 
-  // Draw all shapes
   function redraw() {
-    ctx.save();
     ctx.clearRect(0, 0, w, h);
-    applyZoomPan();
-
     shapes.forEach(s => {
       ctx.fillStyle = s.fill || 'transparent';
       ctx.strokeStyle = s.color || '#000';
@@ -379,7 +349,6 @@
         const height = Math.abs(s.y2 - s.y1);
         if (s.fill) ctx.fillRect(x, y, width, height);
         ctx.strokeRect(x, y, width, height);
-
       } else if (s.type === "ellipse") {
         const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
         const cx = Math.min(s.x1, s.x2) + rx;
@@ -387,12 +356,10 @@
         ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
         if (s.fill) ctx.fill();
         ctx.stroke();
-
       } else if (s.type === "line") {
         ctx.moveTo(s.x1, s.y1);
         ctx.lineTo(s.x2, s.y2);
         ctx.stroke();
-
       } else if (s.type === "pen") {
         if (s.points.length > 0) {
           ctx.moveTo(s.points[0].x, s.points[0].y);
@@ -403,12 +370,10 @@
             s.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
           }
         }
-
       } else if (s.type === "polygon") {
         drawPolygon(ctx, s.x1, s.y1, s.radius, s.sides);
         if (s.fill) ctx.fill();
         ctx.stroke();
-
       } else if (s.type === "bezier") {
         if (s.points.length === 4) {
           const [p0, p1, p2, p3] = s.points;
@@ -420,599 +385,358 @@
             s.points.forEach(p => ctx.fillRect(p.x - 4, p.y - 4, 8, 8));
           }
         }
-
       } else if (s.type === "text") {
         ctx.fillStyle = s.color || "#000";
         ctx.font = `${s.fontSize || 20}px sans-serif`;
         ctx.fillText(s.text, s.x, s.y);
-
-      } else if (s.type === "triangle") {
-        drawPolygon(ctx, s.x1, s.y1, s.radius, 3);
-        if (s.fill) ctx.fill();
-        ctx.stroke();
-
-      } else if (s.type === "star") {
-        drawStar(ctx, s.x1, s.y1, s.radius, 5, 0.5);
-        if (s.fill) ctx.fill();
-        ctx.stroke();
       }
 
       if (selectedShape === s) drawHandles(s);
     });
-
-    // If drawing Bezier points (partial)
-    if (tool === "bezier" && bezierPoints.length > 0) {
-      ctx.strokeStyle = "#f57c00";
-      ctx.fillStyle = "#f57c00";
-      bezierPoints.forEach(p => ctx.fillRect(p.x - 4, p.y - 4, 8, 8));
-    }
-
-    ctx.restore();
   }
 
-  // Draw polygon helper (regular polygon)
   function drawPolygon(ctx, cx, cy, radius, sides) {
     if (sides < 3) return;
     const angle = (Math.PI * 2) / sides;
+    ctx.beginPath();
     ctx.moveTo(cx + radius * Math.cos(0), cy + radius * Math.sin(0));
     for (let i = 1; i < sides; i++) {
-      ctx.lineTo(cx + radius * Math.cos(angle * i), cy + radius * Math.sin(angle * i));
+      ctx.lineTo(cx + radius * Math.cos(i * angle), cy + radius * Math.sin(i * angle));
     }
     ctx.closePath();
   }
 
-  // Draw star helper
-  function drawStar(ctx, cx, cy, outerRadius, points, innerRatio) {
-    if(points < 2) return;
-    const step = Math.PI / points;
-    ctx.moveTo(cx + outerRadius * Math.cos(0), cy + outerRadius * Math.sin(0));
-    for (let i = 1; i < points * 2; i++) {
-      const r = i % 2 === 0 ? outerRadius : outerRadius * innerRatio;
-      ctx.lineTo(cx + r * Math.cos(step * i), cy + r * Math.sin(step * i));
+  function drawHandles(s) {
+    removeHandles();
+    let handles = [];
+
+    if (s.type === "rect" || s.type === "ellipse") {
+      const minX = Math.min(s.x1, s.x2);
+      const maxX = Math.max(s.x1, s.x2);
+      const minY = Math.min(s.y1, s.y2);
+      const maxY = Math.max(s.y1, s.y2);
+      handles = [
+        { name: "tl", x: minX, y: minY },
+        { name: "tr", x: maxX, y: minY },
+        { name: "bl", x: minX, y: maxY },
+        { name: "br", x: maxX, y: maxY }
+      ];
+    } else if (s.type === "polygon") {
+      const angleStep = (Math.PI * 2) / s.sides;
+      for (let i = 0; i < s.sides; i++) {
+        handles.push({
+          name: "v" + i,
+          x: s.x1 + s.radius * Math.cos(i * angleStep),
+          y: s.y1 + s.radius * Math.sin(i * angleStep)
+        });
+      }
+    } else if (s.type === "bezier") {
+      handles = s.points.map((p, i) => ({ name: "p" + i, x: p.x, y: p.y }));
+    } else if (s.type === "pen") {
+      handles = s.points.map((p, i) => ({ name: "p" + i, x: p.x, y: p.y }));
+    } else if (s.type === "line") {
+      handles = [
+        { name: "start", x: s.x1, y: s.y1 },
+        { name: "end", x: s.x2, y: s.y2 }
+      ];
+    } else if (s.type === "text") {
+      handles = [{ name: "pos", x: s.x, y: s.y }];
     }
-    ctx.closePath();
-  }
 
-  // Draw resizing/move handles
-  function drawHandles(shape) {
-    ctx.save();
-    ctx.fillStyle = "#f57c00";
-    ctx.strokeStyle = "#222";
-    ctx.lineWidth = 2;
-
-    const handles = getHandles(shape);
     handles.forEach(h => {
-      ctx.beginPath();
-      ctx.rect(h.x - 6, h.y - 6, 12, 12);
-      ctx.fill();
-      ctx.stroke();
+      const div = document.createElement("div");
+      div.className = "handle";
+      div.style.left = h.x + "px";
+      div.style.top = h.y + "px";
+      div.dataset.handle = h.name;
+      container.appendChild(div);
     });
-
-    ctx.restore();
+  }
+  function removeHandles() {
+    const existing = container.querySelectorAll(".handle");
+    existing.forEach(e => e.remove());
   }
 
-  // Get handles positions based on shape type
-  function getHandles(shape) {
-    const hs = [];
-    if (shape.type === "rect" || shape.type === "ellipse" || shape.type === "triangle" || shape.type === "star" || shape.type === "polygon") {
-      hs.push({ x: shape.x1, y: shape.y1 });
-      hs.push({ x: shape.x2, y: shape.y2 });
-    } else if (shape.type === "line") {
-      hs.push({ x: shape.x1, y: shape.y1 });
-      hs.push({ x: shape.x2, y: shape.y2 });
-    } else if (shape.type === "pen") {
-      shape.points.forEach(p => hs.push({ x: p.x, y: p.y }));
-    } else if (shape.type === "bezier") {
-      shape.points.forEach(p => hs.push({ x: p.x, y: p.y }));
-    }
-    return hs;
-  }
-
-  // Hit test for handles, returns index of handle or -1
-  function hitTestHandles(shape, x, y) {
-    const handles = getHandles(shape);
-    for (let i = 0; i < handles.length; i++) {
-      const h = handles[i];
-      if (Math.abs(h.x - x) <= 8 && Math.abs(h.y - y) <= 8) return i;
-    }
-    return -1;
-  }
-
-  // Hit test shape for selection (simplified)
-  function hitTestShape(shape, x, y) {
-    if (shape.type === "rect") {
-      const minX = Math.min(shape.x1, shape.x2);
-      const maxX = Math.max(shape.x1, shape.x2);
-      const minY = Math.min(shape.y1, shape.y2);
-      const maxY = Math.max(shape.y1, shape.y2);
-      return x >= minX && x <= maxX && y >= minY && y <= maxY;
-    } else if (shape.type === "ellipse") {
-      const rx = Math.abs((shape.x2 - shape.x1) / 2);
-      const ry = Math.abs((shape.y2 - shape.y1) / 2);
-      const cx = Math.min(shape.x1, shape.x2) + rx;
-      const cy = Math.min(shape.y1, shape.y2) + ry;
-      const dx = (x - cx) / rx;
-      const dy = (y - cy) / ry;
-      return dx * dx + dy * dy <= 1;
-    } else if (shape.type === "line") {
-      // Check distance to line segment
-      return distanceToLineSegment(x, y, shape.x1, shape.y1, shape.x2, shape.y2) < 6;
-    } else if (shape.type === "pen") {
-      // Check if near any point in points array
-      return shape.points.some(p => Math.hypot(p.x - x, p.y - y) < 6);
-    } else if (shape.type === "polygon" || shape.type === "triangle" || shape.type === "star") {
-      // Use ctx.isPointInPath for polygons (approximate)
-      ctx.beginPath();
-      if (shape.type === "polygon") drawPolygon(ctx, shape.x1, shape.y1, shape.radius, shape.sides);
-      else if (shape.type === "triangle") drawPolygon(ctx, shape.x1, shape.y1, shape.radius, 3);
-      else if (shape.type === "star") drawStar(ctx, shape.x1, shape.y1, shape.radius, 5, 0.5);
-      return ctx.isPointInPath(x, y);
-    } else if (shape.type === "bezier") {
-      // Check if near bezier curve by sampling points
-      for (let t = 0; t <= 1; t += 0.02) {
-        const pt = cubicBezierPoint(shape.points[0], shape.points[1], shape.points[2], shape.points[3], t);
-        if (Math.hypot(pt.x - x, pt.y - y) < 6) return true;
+  // Hit testing functions for shapes
+  function hitTestShapes(x, y) {
+    for (let i = shapes.length - 1; i >= 0; i--) {
+      const s = shapes[i];
+      if (s.type === "rect" || s.type === "ellipse") {
+        const minX = Math.min(s.x1, s.x2);
+        const maxX = Math.max(s.x1, s.x2);
+        const minY = Math.min(s.y1, s.y2);
+        const maxY = Math.max(s.y1, s.y2);
+        if (x >= minX && x <= maxX && y >= minY && y <= maxY) return s;
+      } else if (s.type === "line") {
+        const dist = pointToSegmentDistance({ x, y }, { x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 });
+        if (dist < 6) return s;
+      } else if (s.type === "polygon") {
+        if (pointInPolygon(x, y, s)) return s;
+      } else if (s.type === "pen") {
+        for (let i = 0; i < s.points.length - 1; i++) {
+          const dist = pointToSegmentDistance({ x, y }, s.points[i], s.points[i + 1]);
+          if (dist < 6) return s;
+        }
+      } else if (s.type === "bezier") {
+        const xs = s.points.map(p => p.x);
+        const ys = s.points.map(p => p.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        if (x >= minX && x <= maxX && y >= minY && y <= maxY) return s;
+      } else if (s.type === "text") {
+        const textWidth = (s.text.length * (s.fontSize || 20)) * 0.6;
+        if (x >= s.x && x <= s.x + textWidth && y >= s.y - (s.fontSize || 20) && y <= s.y) return s;
       }
-      return false;
-    } else if (shape.type === "text") {
-      ctx.font = `${shape.fontSize || 20}px sans-serif`;
-      const width = ctx.measureText(shape.text).width;
-      const height = shape.fontSize || 20;
-      return x >= shape.x && x <= shape.x + width && y >= shape.y - height && y <= shape.y;
     }
-    return false;
+    return null;
   }
-
-  // Distance from point (px,py) to line segment (x1,y1)-(x2,y2)
-  function distanceToLineSegment(px, py, x1, y1, x2, y2) {
-    const l2 = ((x2 - x1) ** 2 + (y2 - y1) ** 2);
-    if (l2 === 0) return Math.hypot(px - x1, py - y1);
-    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+  function pointToSegmentDistance(p, v, w) {
+    const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
+    if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+    let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
     t = Math.max(0, Math.min(1, t));
-    const projX = x1 + t * (x2 - x1);
-    const projY = y1 + t * (y2 - y1);
-    return Math.hypot(px - projX, py - projY);
+    const proj = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
+    return Math.hypot(p.x - proj.x, p.y - proj.y);
   }
-
-  // Calculate cubic bezier point at t (0-1)
-  function cubicBezierPoint(p0, p1, p2, p3, t) {
-    const mt = 1 - t;
-    return {
-      x: mt * mt * mt * p0.x + 3 * mt * mt * t * p1.x + 3 * mt * t * t * p2.x + t * t * t * p3.x,
-      y: mt * mt * mt * p0.y + 3 * mt * mt * t * p1.y + 3 * mt * t * t * p2.y + t * t * t * p3.y
-    };
-  }
-
-  // Mouse down handler
-  canvas.addEventListener("mousedown", e => {
-    const pos = getCanvasCoords(e);
-    coordsEl.textContent = `X: ${pos.x.toFixed(0)} Y: ${pos.y.toFixed(0)}`;
-
-    if (tool === "zoom") {
-      if(e.button === 1 || e.shiftKey) { // Middle click or shift + click to pan
-        isPanning = true;
-        panStart = { x: e.clientX, y: e.clientY };
-        canvas.style.cursor = "grab";
-        return;
-      }
+  function pointInPolygon(x, y, poly) {
+    const vertices = [];
+    const angleStep = (Math.PI * 2) / poly.sides;
+    for (let i = 0; i < poly.sides; i++) {
+      vertices.push({
+        x: poly.x1 + poly.radius * Math.cos(i * angleStep),
+        y: poly.y1 + poly.radius * Math.sin(i * angleStep),
+      });
     }
+    let inside = false;
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+      const xi = vertices[i].x, yi = vertices[i].y;
+      const xj = vertices[j].x, yj = vertices[j].y;
+      const intersect = ((yi > y) !== (yj > y)) && (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  // Mouse handlers for canvas
+  canvas.addEventListener("mousedown", e => {
+    e.preventDefault();
+    const pos = getCanvasCoords(e);
+    startX = pos.x; startY = pos.y;
 
     if (tool === "select") {
-      // Check handles first for resizing
+      // Check handles first
+      const handle = e.target.closest(".handle");
+      if (handle) {
+        activeHandle = handle.dataset.handle;
+        resizing = true;
+        return;
+      }
+      selectedShape = hitTestShapes(startX, startY);
       if (selectedShape) {
-        const handleIndex = hitTestHandles(selectedShape, pos.x, pos.y);
-        if (handleIndex >= 0) {
-          resizing = true;
-          activeHandle = handleIndex;
-          isDrawing = false;
-          return;
-        }
-      }
-
-      // Hit test shapes backwards (topmost first)
-      for (let i = shapes.length - 1; i >= 0; i--) {
-        if (hitTestShape(shapes[i], pos.x, pos.y)) {
-          selectedShape = shapes[i];
-          draggingPoint = { x: pos.x, y: pos.y };
-          isDrawing = true;
-          redraw();
-          return;
-        }
-      }
-      selectedShape = null;
-      redraw();
-      return;
-    }
-
-    if (tool === "fill") {
-      // Fill bucket: fill topmost shape under cursor with fill color
-      for (let i = shapes.length - 1; i >= 0; i--) {
-        if (hitTestShape(shapes[i], pos.x, pos.y)) {
-          shapes[i].fill = fillColorPicker.value;
-          saveState();
-          redraw();
-          return;
-        }
-      }
-      return;
-    }
-
-    if (tool === "eraser") {
-      // Delete shape under cursor
-      for (let i = shapes.length - 1; i >= 0; i--) {
-        if (hitTestShape(shapes[i], pos.x, pos.y)) {
-          shapes.splice(i, 1);
-          saveState();
-          redraw();
-          return;
-        }
-      }
-      return;
-    }
-
-    // Start drawing shapes
-    isDrawing = true;
-    startX = pos.x;
-    startY = pos.y;
-
-    if (tool === "text") {
-      const text = prompt("Enter text:");
-      if (text) {
-        shapes.push({
-          type: "text",
-          x: startX,
-          y: startY,
-          text,
-          color: strokeColorPicker.value,
-          fontSize: 20
-        });
-        saveState();
+        isDrawing = true;
+      } else {
+        selectedShape = null;
         redraw();
       }
-      isDrawing = false;
-      return;
-    }
-
-    if (tool === "bezier") {
+    } else if (tool === "rect" || tool === "ellipse" || tool === "line" || tool === "polygon") {
+      isDrawing = true;
+      currentShape = {
+        type: tool,
+        x1: startX,
+        y1: startY,
+        x2: startX,
+        y2: startY,
+        color: strokeColorPicker.value,
+        fill: fillColorPicker.value,
+        width: Number(strokeWidthInput.value),
+        sides: Number(polygonSidesInput.value),
+        radius: 0
+      };
+    } else if (tool === "pen") {
+      if (!isDrawing) {
+        isDrawing = true;
+        currentShape = { type: "pen", points: [{ x: startX, y: startY }], color: strokeColorPicker.value, width: Number(strokeWidthInput.value) };
+        shapes.push(currentShape);
+        saveState();
+      } else {
+        currentShape.points.push({ x: startX, y: startY });
+      }
+    } else if (tool === "bezier") {
       bezierPoints.push({ x: startX, y: startY });
       if (bezierPoints.length === 4) {
-        shapes.push({
-          type: "bezier",
-          points: [...bezierPoints],
-          color: strokeColorPicker.value,
-          width: parseInt(strokeWidthInput.value),
-          fill: null
-        });
-        bezierPoints = [];
+        const bezierShape = { type: "bezier", points: bezierPoints.slice(), color: strokeColorPicker.value, width: Number(strokeWidthInput.value) };
+        shapes.push(bezierShape);
         saveState();
-        redraw();
-      } else {
+        bezierPoints = [];
         redraw();
       }
-      isDrawing = false;
-      return;
-    }
-
-    currentShape = {
-      type: null,
-      x1: startX,
-      y1: startY,
-      x2: startX,
-      y2: startY,
-      color: strokeColorPicker.value,
-      width: parseInt(strokeWidthInput.value),
-      fill: null
-    };
-
-    switch (tool) {
-      case "rect": currentShape.type = "rect"; currentShape.fill = fillColorPicker.value; break;
-      case "ellipse": currentShape.type = "ellipse"; currentShape.fill = fillColorPicker.value; break;
-      case "line": currentShape.type = "line"; break;
-      case "polygon": currentShape.type = "polygon"; currentShape.sides = parseInt(polygonSidesInput.value); currentShape.radius = 0; currentShape.fill = fillColorPicker.value; break;
-      case "triangle": currentShape.type = "triangle"; currentShape.radius = 0; currentShape.fill = fillColorPicker.value; break;
-      case "star": currentShape.type = "star"; currentShape.radius = 0; currentShape.fill = fillColorPicker.value; break;
-      case "pen": currentShape.type = "pen"; currentShape.points = [{ x: startX, y: startY }]; break;
-      default: currentShape = null;
+    } else if (tool === "eraser") {
+      const targetShape = hitTestShapes(startX, startY);
+      if (targetShape) {
+        shapes = shapes.filter(s => s !== targetShape);
+        saveState();
+        redraw();
+      }
+    } else if (tool === "text") {
+      const text = prompt("Enter text:");
+      if (text) {
+        const textShape = {
+          type: "text",
+          text,
+          x: startX,
+          y: startY,
+          color: strokeColorPicker.value,
+          fontSize: 20
+        };
+        shapes.push(textShape);
+        saveState();
+        redraw();
+      }
     }
   });
 
-  // Mouse move handler
   canvas.addEventListener("mousemove", e => {
     const pos = getCanvasCoords(e);
     coordsEl.textContent = `X: ${pos.x.toFixed(0)} Y: ${pos.y.toFixed(0)}`;
 
-    if (isPanning) {
-      const dx = e.clientX - panStart.x;
-      const dy = e.clientY - panStart.y;
-      panX += dx;
-      panY += dy;
-      panStart = { x: e.clientX, y: e.clientY };
-      redraw();
-      return;
-    }
-
-    if (!isDrawing) return;
-
-    if (tool === "select" && selectedShape) {
-      if (resizing && activeHandle !== null) {
-        // Resize shape via handle
-        if (activeHandle === 0) {
-          selectedShape.x1 = pos.x;
-          selectedShape.y1 = pos.y;
-        } else if (activeHandle === 1) {
-          selectedShape.x2 = pos.x;
-          selectedShape.y2 = pos.y;
+    if (tool === "select") {
+      if (resizing && selectedShape && activeHandle) {
+        if (selectedShape.type === "rect" || selectedShape.type === "ellipse") {
+          switch (activeHandle) {
+            case "tl": selectedShape.x1 = pos.x; selectedShape.y1 = pos.y; break;
+            case "tr": selectedShape.x2 = pos.x; selectedShape.y1 = pos.y; break;
+            case "bl": selectedShape.x1 = pos.x; selectedShape.y2 = pos.y; break;
+            case "br": selectedShape.x2 = pos.x; selectedShape.y2 = pos.y; break;
+          }
+        } else if (selectedShape.type === "line") {
+          if (activeHandle === "start") { selectedShape.x1 = pos.x; selectedShape.y1 = pos.y; }
+          else if (activeHandle === "end") { selectedShape.x2 = pos.x; selectedShape.y2 = pos.y; }
+        } else if (selectedShape.type === "polygon") {
+          const dx = pos.x - selectedShape.x1;
+          const dy = pos.y - selectedShape.y1;
+          selectedShape.radius = Math.sqrt(dx * dx + dy * dy);
+        } else if (selectedShape.type === "bezier" || selectedShape.type === "pen") {
+          const idx = Number(activeHandle.slice(1));
+          if (!isNaN(idx)) {
+            selectedShape.points[idx].x = pos.x;
+            selectedShape.points[idx].y = pos.y;
+          }
+        } else if (selectedShape.type === "text") {
+          selectedShape.x = pos.x;
+          selectedShape.y = pos.y;
         }
         redraw();
-        return;
       }
-      // Drag move shape
-      const dx = pos.x - draggingPoint.x;
-      const dy = pos.y - draggingPoint.y;
-      draggingPoint = { x: pos.x, y: pos.y };
-      moveShape(selectedShape, dx, dy);
-      redraw();
-      return;
-    }
-
-    if (!currentShape) return;
-
-    if (tool === "pen") {
-      currentShape.points.push({ x: pos.x, y: pos.y });
-      redraw();
-      return;
-    }
-
-    // Update shape endpoint and radius
-    currentShape.x2 = pos.x;
-    currentShape.y2 = pos.y;
-
-    if (tool === "polygon" || tool === "triangle" || tool === "star") {
-      currentShape.radius = Math.hypot(pos.x - startX, pos.y - startY);
-    }
-
-    redraw();
-
-    // Draw the preview shape
-    ctx.save();
-    applyZoomPan();
-    ctx.strokeStyle = strokeColorPicker.value;
-    ctx.fillStyle = fillColorPicker.value;
-    ctx.lineWidth = parseInt(strokeWidthInput.value);
-    ctx.beginPath();
-
-    switch (tool) {
-      case "rect": {
-        const x = Math.min(startX, pos.x);
-        const y = Math.min(startY, pos.y);
-        const w = Math.abs(pos.x - startX);
-        const h = Math.abs(pos.y - startY);
-        if (fillColorPicker.value) ctx.fillRect(x, y, w, h);
-        ctx.strokeRect(x, y, w, h);
-        break;
-      }
-      case "ellipse": {
-        const rx = Math.abs((pos.x - startX) / 2);
-        const ry = Math.abs((pos.y - startY) / 2);
-        const cx = Math.min(startX, pos.x) + rx;
-        const cy = Math.min(startY, pos.y) + ry;
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-        if (fillColorPicker.value) ctx.fill();
-        ctx.stroke();
-        break;
-      }
-      case "line": {
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        break;
-      }
-      case "polygon": {
-        drawPolygon(ctx, startX, startY, currentShape.radius, parseInt(polygonSidesInput.value));
-        if (fillColorPicker.value) ctx.fill();
-        ctx.stroke();
-        break;
-      }
-      case "triangle": {
-        drawPolygon(ctx, startX, startY, currentShape.radius, 3);
-        if (fillColorPicker.value) ctx.fill();
-        ctx.stroke();
-        break;
-      }
-      case "star": {
-        drawStar(ctx, startX, startY, currentShape.radius, 5, 0.5);
-        if (fillColorPicker.value) ctx.fill();
-        ctx.stroke();
-        break;
+    } else if (isDrawing) {
+      if (tool === "rect" || tool === "ellipse" || tool === "line") {
+        currentShape.x2 = pos.x;
+        currentShape.y2 = pos.y;
+        redraw();
+        drawCurrentShape();
+      } else if (tool === "polygon") {
+        currentShape.radius = Math.sqrt((pos.x - currentShape.x1) ** 2 + (pos.y - currentShape.y1) ** 2);
+        redraw();
+        drawCurrentShape();
       }
     }
-    ctx.restore();
   });
 
-  // Mouse up handler
   canvas.addEventListener("mouseup", e => {
-    if (tool === "zoom") {
-      if(isPanning) {
-        isPanning = false;
-        canvas.style.cursor = "crosshair";
-      }
-      return;
-    }
-
-    if (!isDrawing) return;
-
-    isDrawing = false;
-    resizing = false;
-    activeHandle = null;
-
     if (tool === "select") {
-      draggingPoint = null;
-      return;
-    }
-
-    if (currentShape) {
-      if (tool === "pen") {
-        // Only add if points more than 1
-        if (currentShape.points.length > 1) {
-          shapes.push(currentShape);
-          saveState();
-        }
-      } else if (tool === "polygon" || tool === "triangle" || tool === "star") {
-        if (currentShape.radius > 5) {
-          shapes.push(currentShape);
-          saveState();
-        }
-      } else {
-        shapes.push(currentShape);
+      if (resizing) {
+        resizing = false;
+        activeHandle = null;
         saveState();
       }
-      currentShape = null;
-      redraw();
+      isDrawing = false;
+    } else if (isDrawing) {
+      if (tool !== "pen" && tool !== "bezier") {
+        shapes.push(currentShape);
+        saveState();
+        currentShape = null;
+        isDrawing = false;
+        redraw();
+      }
     }
   });
 
-  // Move shape by dx, dy
-  function moveShape(shape, dx, dy) {
-    if (shape.type === "rect" || shape.type === "ellipse" || shape.type === "line" || shape.type === "polygon" || shape.type === "triangle" || shape.type === "star") {
-      shape.x1 += dx;
-      shape.y1 += dy;
-      shape.x2 += dx;
-      shape.y2 += dy;
-    } else if (shape.type === "pen" || shape.type === "bezier") {
-      shape.points.forEach(p => { p.x += dx; p.y += dy; });
-    } else if (shape.type === "text") {
-      shape.x += dx;
-      shape.y += dy;
+  function drawCurrentShape() {
+    if (!currentShape) return;
+    ctx.strokeStyle = currentShape.color || "#000";
+    ctx.fillStyle = currentShape.fill || "transparent";
+    ctx.lineWidth = currentShape.width || 1;
+    ctx.beginPath();
+    if (currentShape.type === "rect") {
+      const x = Math.min(currentShape.x1, currentShape.x2);
+      const y = Math.min(currentShape.y1, currentShape.y2);
+      const w = Math.abs(currentShape.x2 - currentShape.x1);
+      const h = Math.abs(currentShape.y2 - currentShape.y1);
+      if (currentShape.fill) ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+    } else if (currentShape.type === "ellipse") {
+      const rx = Math.abs((currentShape.x2 - currentShape.x1) / 2);
+      const ry = Math.abs((currentShape.y2 - currentShape.y1) / 2);
+      const cx = Math.min(currentShape.x1, currentShape.x2) + rx;
+      const cy = Math.min(currentShape.y1, currentShape.y2) + ry;
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+      if (currentShape.fill) ctx.fill();
+      ctx.stroke();
+    } else if (currentShape.type === "line") {
+      ctx.moveTo(currentShape.x1, currentShape.y1);
+      ctx.lineTo(currentShape.x2, currentShape.y2);
+      ctx.stroke();
+    } else if (currentShape.type === "polygon") {
+      drawPolygon(ctx, currentShape.x1, currentShape.y1, currentShape.radius, currentShape.sides);
+      if (currentShape.fill) ctx.fill();
+      ctx.stroke();
     }
   }
 
-  // Keyboard shortcuts
-  window.addEventListener("keydown", e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-      undo();
-      e.preventDefault();
-    } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
-      redo();
-      e.preventDefault();
-    } else if (e.key === "Delete" || e.key === "Backspace") {
-      if (selectedShape) {
-        shapes = shapes.filter(s => s !== selectedShape);
-        selectedShape = null;
-        saveState();
-        redraw();
-      }
-    } else if (e.key === "Escape") {
-      setTool("select");
-    }
+  // Undo/Redo Buttons
+  document.getElementById("undoBtn").addEventListener("click", undo);
+  document.getElementById("redoBtn").addEventListener("click", redo);
+
+  // Export PNG
+  document.getElementById("exportPNGBtn").addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = "openillustrator.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   });
 
-  // Export as PNG
-  document.getElementById("exportPNGBtn").onclick = () => {
-    // Create offscreen canvas to export without zoom/pan
-    const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height;
-    const exportCtx = exportCanvas.getContext("2d");
-    exportCtx.fillStyle = "#fff";
-    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    shapes.forEach(s => {
-      exportCtx.fillStyle = s.fill || 'transparent';
-      exportCtx.strokeStyle = s.color || '#000';
-      exportCtx.lineWidth = s.width || 1;
-      exportCtx.beginPath();
-
-      if (s.type === "rect") {
-        const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
-        const width = Math.abs(s.x2 - s.x1);
-        const height = Math.abs(s.y2 - s.y1);
-        if (s.fill) exportCtx.fillRect(x, y, width, height);
-        exportCtx.strokeRect(x, y, width, height);
-      } else if (s.type === "ellipse") {
-        const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
-        const cx = Math.min(s.x1, s.x2) + rx;
-        const cy = Math.min(s.y1, s.y2) + ry;
-        exportCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
-        if (s.fill) exportCtx.fill();
-        exportCtx.stroke();
-      } else if (s.type === "line") {
-        exportCtx.moveTo(s.x1, s.y1);
-        exportCtx.lineTo(s.x2, s.y2);
-        exportCtx.stroke();
-      } else if (s.type === "pen") {
-        if (s.points.length > 0) {
-          exportCtx.moveTo(s.points[0].x, s.points[0].y);
-          s.points.slice(1).forEach(p => exportCtx.lineTo(p.x, p.y));
-          exportCtx.stroke();
-        }
-      } else if (s.type === "polygon") {
-        drawPolygon(exportCtx, s.x1, s.y1, s.radius, s.sides);
-        if (s.fill) exportCtx.fill();
-        exportCtx.stroke();
-      } else if (s.type === "bezier") {
-        if (s.points.length === 4) {
-          const [p0, p1, p2, p3] = s.points;
-          exportCtx.moveTo(p0.x, p0.y);
-          exportCtx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
-          exportCtx.stroke();
-        }
-      } else if (s.type === "text") {
-        exportCtx.fillStyle = s.color || "#000";
-        exportCtx.font = `${s.fontSize || 20}px sans-serif`;
-        exportCtx.fillText(s.text, s.x, s.y);
-      } else if (s.type === "triangle") {
-        drawPolygon(exportCtx, s.x1, s.y1, s.radius, 3);
-        if (s.fill) exportCtx.fill();
-        exportCtx.stroke();
-      } else if (s.type === "star") {
-        drawStar(exportCtx, s.x1, s.y1, s.radius, 5, 0.5);
-        if (s.fill) exportCtx.fill();
-        exportCtx.stroke();
-      }
-    });
-    const dataURL = exportCanvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = dataURL;
-    link.download = "open-illustrator-export.png";
-    link.click();
-  };
-
-  // Save as JSON
-  document.getElementById("saveJSONBtn").onclick = () => {
+  // Save JSON
+  document.getElementById("saveJSONBtn").addEventListener("click", () => {
     const dataStr = JSON.stringify(shapes);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "open-illustrator-save.json";
-    a.click();
+    const link = document.createElement("a");
+    link.download = "openillustrator.json";
+    link.href = url;
+    link.click();
     URL.revokeObjectURL(url);
-  };
+  });
 
-  // Zoom Tool Mouse Wheel zoom
-  canvas.addEventListener("wheel", e => {
-    if (tool !== "zoom") return;
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left);
-    const mouseY = (e.clientY - rect.top);
+  // Keyboard shortcuts for tools
+  window.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT") return;
+    switch (e.key.toLowerCase()) {
+      case "v": setTool("select"); break;
+      case "r": setTool("rect"); break;
+      case "o": setTool("ellipse"); break;
+      case "l": setTool("line"); break;
+      case "p": setTool("polygon"); break;
+      case "n": setTool("pen"); break;
+      case "b": setTool("bezier"); break;
+      case "x": setTool("text"); break;
+      case "e": setTool("eraser"); break;
+      case "z": if (e.ctrlKey) undo(); break;
+      case "y": if (e.ctrlKey) redo(); break;
+    }
+  });
 
-    // Zoom factor
-    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-    // Translate mouse point to canvas coords before zoom
-    const canvasX = (mouseX - panX) / zoomLevel;
-    const canvasY = (mouseY - panY) / zoomLevel;
-
-    zoomLevel *= zoomFactor;
-    zoomLevel = Math.min(Math.max(zoomLevel, 0.2), 10);
-
-    // Adjust pan to zoom around mouse position
-    panX = mouseX - canvasX * zoomLevel;
-    panY = mouseY - canvasY * zoomLevel;
-
-    redraw();
-  }, { passive: false });
-
-  // Initial setup
+  // Initial resize and draw
   resize();
   saveState();
 
