@@ -394,7 +394,7 @@
   document.getElementById("saveJSON").onclick = () => {
     const blob = new Blob([JSON.stringify(shapes)], { type: "application/json" });
     const link = document.createElement("a");
-    link.download = "drawing.json";
+    link.download = "new_project.oi";
     link.href = URL.createObjectURL(blob);
     link.click();
   };
