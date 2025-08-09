@@ -53,22 +53,23 @@
   }
 
   /* Main layout */
-  #main {
-    flex: 1;
-    display: flex;
-    background: #252525;
-  }
+#main {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-height: 0; /* allows flex children to shrink properly */
+}
+
 
   /* Toolbar left side */
-  #toolbar {
-    width: 72px;
-    background: #2f2f2f;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 12px 0;
-    border-right: 2px solid #444;
-  }
+#toolbar {
+  width: 160px; /* fixed width */
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid #444;
+  background: #2b2b2b;
+}
+
   .tool-button {
     width: 56px;
     height: 56px;
@@ -137,29 +138,27 @@
   }
 
   /* Canvas container and canvas */
-  #canvas-container {
-  flex: 1;
-  position: relative;
-  background: #1c1c1c;
+#canvas-container {
+  flex: 1; /* this makes it expand to fill available space */
+  min-width: 0; /* important for flexbox overflow control */
+  min-height: 0; /* same for vertical */
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: visible; /* make sure nothing clips */
-  min-width: 200px;
-  min-height: 200px;
+  background: #1c1c1c;
 }
 
+
 canvas {
-  background: white;
-  border: 1px solid #666;
-  /* Use fixed pixel sizes or 100% width and height of container */
-  width: 800px;   /* or try width: 90%; */
-  height: 600px;  /* or try height: 90%; */
   max-width: 100%;
   max-height: 100%;
-  cursor: crosshair;
-  display: block; /* remove any inline spacing */
+  width: auto;  /* allows width to scale */
+  height: auto; /* allows height to scale */
+  background: white;
+  border: 1px solid #666;
+  display: block;
 }
+
 
 
   /* Status bar */
@@ -273,14 +272,14 @@ canvas {
 
   let bezierPoints = [];
 
-  function resize() {
-    const rect = container.getBoundingClientRect();
-    canvas.width = rect.width * 0.95;
-    canvas.height = rect.height * 0.95;
-    w = canvas.width;
-    h = canvas.height;
-    redraw();
-  }
+function resize() {
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width * 0.95;
+  canvas.height = rect.height * 0.95;
+  // Do NOT set canvas.style.width/height here to avoid conflicts with CSS flexbox sizing
+  redraw();
+}
+
   window.addEventListener("resize", resize);
 
   function getCanvasCoords(e) {
