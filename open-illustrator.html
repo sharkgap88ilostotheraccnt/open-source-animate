@@ -138,20 +138,29 @@
 
   /* Canvas container and canvas */
   #canvas-container {
-    flex: 1;
-    position: relative;
-    background: #1c1c1c;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  canvas {
-    background: white;
-    border: 1px solid #666;
-    width: 90%;
-    height: 90%;
-    cursor: crosshair;
-  }
+  flex: 1;
+  position: relative;
+  background: #1c1c1c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible; /* make sure nothing clips */
+  min-width: 200px;
+  min-height: 200px;
+}
+
+canvas {
+  background: white;
+  border: 1px solid #666;
+  /* Use fixed pixel sizes or 100% width and height of container */
+  width: 800px;   /* or try width: 90%; */
+  height: 600px;  /* or try height: 90%; */
+  max-width: 100%;
+  max-height: 100%;
+  cursor: crosshair;
+  display: block; /* remove any inline spacing */
+}
+
 
   /* Status bar */
   #statusbar {
