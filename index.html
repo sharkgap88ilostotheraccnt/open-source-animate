@@ -2,182 +2,219 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>The Open Project</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Open Project - Adobe Style Home</title>
 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
-  body {
-    margin: 0;
-    height: 100vh;
-    background: #121212;
-    color: #ddd;
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    background: #111; /* Adobe dark background */
+    color: #eee;
     font-family: 'Inter', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    transition: background 0.3s ease, color 0.3s ease;
+    user-select: none;
   }
 
-  /* Dark mode styles */
   body.light-mode {
-    background: #f5f5f5;
+    background: #f9f9f9;
     color: #222;
   }
 
-  .menu-container {
+  .container {
+    max-width: 900px;
+    margin: 3rem auto;
     display: flex;
-    flex-direction: row;
-    width: 700px;
-    height: 80vh;
-    background: #1b1b1b;
-    border: 1px solid #333;
-    box-shadow: 0 0 6px rgba(0,0,0,0.8);
-    padding: 24px 30px;
-    box-sizing: border-box;
-    gap: 24px;
-    transition: background 0.3s ease;
+    gap: 40px;
+    padding: 0 1rem;
   }
 
-  body.light-mode .menu-container {
-    background: #fff;
-    border-color: #ccc;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-
-  .left-menu {
-    flex: 1;
+  /* Left panel - main actions */
+  .main-actions {
+    flex: 2;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 16px;
+    gap: 2.5rem;
   }
 
-  h1 {
-    margin: 0 0 24px 0;
-    font-weight: 600;
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .logo-area img {
+    height: 48px;
+    width: 48px;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(107%) contrast(101%);
+  }
+  .logo-text {
     font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     color: #fff;
-    letter-spacing: 0.05em;
-    text-align: center;
-    user-select: none;
-    transition: color 0.3s ease;
+    user-select: text;
   }
-
-  body.light-mode h1 {
+  body.light-mode .logo-text {
     color: #222;
   }
+  .tagline {
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: #aaa;
+    margin-top: 0.15rem;
+  }
+  body.light-mode .tagline {
+    color: #555;
+  }
 
-  button {
-    background: transparent;
-    border: 1.5px solid #666;
-    color: #ccc;
+  /* Buttons styled like Adobe CC home page */
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 26px;
     font-weight: 600;
-    font-size: 14px;
-    padding: 14px 20px;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    background: #FF1F50; /* Adobe red accent */
+    border: none;
+    color: #fff;
     cursor: pointer;
+    box-shadow: 0 6px 10px rgb(255 31 80 / 0.3);
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    background: #e01b45;
+    box-shadow: 0 8px 14px rgb(224 27 69 / 0.5);
+    outline-offset: 3px;
+    outline: 3px solid #ff5c7a;
+  }
+  .btn-primary svg {
+    height: 28px;
+    width: 28px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* Secondary buttons */
+  .btn-secondary {
     display: flex;
     align-items: center;
     gap: 10px;
-    user-select: none;
-    transition: all 0.15s ease;
-    text-transform: uppercase;
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 5px;
+    border: 2px solid #555;
+    background: transparent;
+    color: #ddd;
+    cursor: pointer;
+    transition: all 0.25s ease;
   }
-  button svg {
-    width: 20px;
-    height: 20px;
+  .btn-secondary:hover,
+  .btn-secondary:focus-visible {
+    border-color: #ff1f50;
+    color: #ff1f50;
+    background: rgba(255,31,80,0.12);
+    outline-offset: 3px;
+    outline: 3px solid rgba(255,31,80,0.4);
+  }
+  .btn-secondary svg {
+    height: 18px;
+    width: 18px;
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
   }
-  button:hover {
-    border-color: #fff;
-    color: #fff;
-    background: #222;
-  }
-  body.light-mode button {
-    border-color: #aaa;
-    color: #444;
-  }
-  body.light-mode button:hover {
-    border-color: #555;
-    color: #000;
-    background: #eee;
-  }
-  button:focus {
-    outline: none;
-    box-shadow: 0 0 4px #555;
-  }
 
-  .right-menu {
-    width: 300px;
+  /* Right sidebar */
+  .sidebar {
+    flex: 1;
     background: #222;
-    border: 1px solid #333;
-    border-radius: 4px;
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 0 14px #000a inset;
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    box-sizing: border-box;
-    transition: background 0.3s ease, border-color 0.3s ease;
   }
-  body.light-mode .right-menu {
+  body.light-mode .sidebar {
     background: #fafafa;
-    border-color: #ccc;
+    box-shadow: 0 0 18px #ddd inset;
   }
-
-  .recent-projects strong {
+  .sidebar h2 {
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.07em;
     color: #aaa;
-    font-size: 13px;
-    margin-bottom: 14px;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    user-select: text;
   }
-  body.light-mode .recent-projects strong {
+  body.light-mode .sidebar h2 {
     color: #555;
   }
+  .recent-list {
+    flex: 1;
+    overflow-y: auto;
+  }
   .recent-item {
-    background: #1c1c1c;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 3px;
+    font-size: 0.9rem;
+    color: #ccc;
+    padding: 0.5rem 0.7rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
     cursor: pointer;
-    color: #bbb;
-    font-size: 13px;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
-    transition: background-color 0.2s ease;
+    overflow: hidden;
+    transition: background-color 0.22s ease, color 0.22s ease;
+  }
+  .recent-item:hover,
+  .recent-item:focus-visible {
+    background: #ff1f50;
+    color: white;
+    outline: none;
   }
   body.light-mode .recent-item {
-    background: #eee;
-    color: #333;
+    color: #444;
   }
-  .recent-item:hover {
-    background: #333;
-    color: #eee;
+  body.light-mode .recent-item:hover,
+  body.light-mode .recent-item:focus-visible {
+    background: #e01b45;
+    color: white;
   }
-  body.light-mode .recent-item:hover {
-    background: #ccc;
-    color: #111;
+  /* Scrollbar styling */
+  .recent-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  .recent-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .recent-list::-webkit-scrollbar-thumb {
+    background: #ff1f50;
+    border-radius: 4px;
   }
 
+  /* Footer */
   footer {
-    position: fixed;
-    bottom: 8px;
-    width: 100%;
     text-align: center;
-    font-size: 11px;
+    font-size: 12px;
     color: #444;
     user-select: none;
-    font-weight: 400;
+    margin: 3rem 0 1rem 0;
     font-family: monospace;
-    transition: color 0.3s ease;
   }
   body.light-mode footer {
-    color: #888;
+    color: #999;
   }
 
+  /* Modal styles remain mostly as you had */
   .modal {
     display: none;
     position: fixed;
@@ -241,73 +278,96 @@
     color: #222;
     border-color: #555;
   }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .container {
+      flex-direction: column;
+      max-width: 100vw;
+      margin: 2rem 0;
+      gap: 2rem;
+    }
+    .sidebar {
+      width: 100%;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+  }
 </style>
 </head>
 <body>
 
-<div class="menu-container" role="main" aria-label="Main menu">
-  <div class="left-menu" aria-label="Primary actions">
-    <h1>The Open Project</h1>
-    <button onclick="window.location.href='editor.html'" aria-label="New Animate Project">
-      <img src="animate.png" alt="anim" style="width:20px; height:20px;"> New Animate Project
-    </button>
-    <button onclick="window.location.href='open-illustrator.html'" aria-label="New Illustrator Project">
-      <img src="illustrator.png" alt="illustrator" style="width:20px; height:20px;"> New Illustrator Project
-    </button>
-    <input type="file" accept=".oa,.oi" style="display: none;" id="fileInput">
-<button onclick="document.getElementById('fileInput').click()">
-  <img src="file_open.png" alt="Open" style="width:20px; height:20px;"> open io/ia
-</button>
-
-    <button onclick="showAbout()" aria-label="About this project">
-    <img src="info.png" style="width:20px; height:20px;"> About
-    </button>
-
-    <hr style="border-color:#444; margin: 20px 0;">
-
-    <button onclick="randomAlert()" aria-label="Random alert">⚡ Surprise Alert</button>
-    <button onclick="changeBackground()" aria-label="Change background color">🎨 Change Background</button>
-    <button onclick="toggleDarkMode()" aria-label="Toggle light/dark mode">🌗 Toggle Dark Mode</button>
-    <button onclick="showTime()" aria-label="Show current time">⏰ Show Time</button>
-    <button onclick="openQuote()" aria-label="Open inspirational quote">💡 Quote</button>
-  </div>
-
-  <div class="right-menu" aria-label="Recent projects">
-    <div class="recent-projects" id="recentList">
-      <strong>Recent Projects</strong>
+<div class="container" role="main" aria-label="The Open Project Home Page">
+  <section class="main-actions" aria-label="Primary Actions">
+    <div class="logo-area" aria-hidden="true">
+      <img src="open-project-logo.svg" alt="" />
+      <div>
+        <div class="logo-text">The Open Project</div>
+        <div class="tagline">Creative freedom without limits</div>
+      </div>
     </div>
-  </div>
+
+    <button class="btn-primary" onclick="window.location.href='editor.html'" aria-label="Start a new Animate project">
+      <!-- Placeholder animate icon -->
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3h18v18H3z" stroke-linejoin="round"/></svg>
+      New Animate Project
+    </button>
+
+    <button class="btn-primary" onclick="window.location.href='open-illustrator.html'" aria-label="Start a new Illustrator project">
+      <!-- Placeholder illustrator icon -->
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" stroke-linejoin="round"/></svg>
+      New Illustrator Project
+    </button>
+
+    <button class="btn-secondary" onclick="document.getElementById('fileInput').click()" aria-label="Open a saved project file">
+      <!-- File open icon -->
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h16v16H4z"/></svg>
+      Open Project (.oa/.oi)
+    </button>
+
+    <button class="btn-secondary" onclick="showAbout()" aria-label="About this project">
+      <!-- Info icon -->
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="1"/></svg>
+      About
+    </button>
+  </section>
+
+  <aside class="sidebar" aria-label="Recent projects and quick links">
+    <h2>Recent Projects</h2>
+    <div class="recent-list" id="recentList" tabindex="0" aria-live="polite" aria-relevant="additions"></div>
+  </aside>
 </div>
 
 <footer>The Open Project v1.2 – Free &amp; Open Source</footer>
 
+<input type="file" accept=".oa,.oi" id="fileInput" style="display:none" />
+
 <!-- About Modal -->
 <div class="modal" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
   <div class="modal-content">
-    <h2 id="aboutTitle">About Open Animate</h2>
-    <p>Open Animate is a free, open-source web-based animation tool inspired by Adobe Animate.</p>
-    <p>Created for creators who want full control without subscriptions.</p>
+    <h2 id="aboutTitle">About The Open Project</h2>
+    <p>The Open Project is a free, open-source creative suite inspired by Adobe's tools, giving you full control without subscriptions.</p>
+    <p>Start animating or designing right away with zero restrictions.</p>
     <button onclick="closeAbout()" aria-label="Close about modal">Close</button>
-  </div>
-</div>
-
-<!-- Quote Modal -->
-<div class="modal" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
-  <div class="modal-content">
-    <h2 id="quoteTitle">Inspirational Quote</h2>
-    <p id="quoteText"></p>
-    <button onclick="closeQuote()" aria-label="Close quote modal">Close</button>
   </div>
 </div>
 
 <script>
   const recentList = document.getElementById('recentList');
 
-  // Load recent projects
+  // Load recent projects from localStorage
   function loadRecents() {
-    let recents = JSON.parse(localStorage.getItem('recentProjects') || '[]');
-    recentList.innerHTML = '<strong>Recent Projects</strong>';
-    recents.forEach((proj) => {
+    const recents = JSON.parse(localStorage.getItem('recentProjects') || '[]');
+    recentList.innerHTML = '';
+    if (recents.length === 0) {
+      const none = document.createElement('p');
+      none.textContent = "No recent projects found.";
+      none.style.color = 'var(--color-muted, #666)';
+      none.style.fontStyle = 'italic';
+      recentList.appendChild(none);
+      return;
+    }
+    recents.forEach(proj => {
       const div = document.createElement('div');
       div.className = 'recent-item';
       div.textContent = proj.name;
@@ -316,10 +376,15 @@
       div.setAttribute('aria-label', `Open project ${proj.name}`);
       div.onclick = () => {
         localStorage.setItem('loadedProject', proj.data);
-        window.location.href = 'editor.html';
+        // Decide editor based on project extension or data format
+        if(proj.name.endsWith('.oi')) {
+          window.location.href = 'open-illustrator.html';
+        } else {
+          window.location.href = 'editor.html';
+        }
       };
-      div.onkeydown = (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+      div.onkeydown = e => {
+        if(e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           div.click();
         }
@@ -329,7 +394,7 @@
   }
   loadRecents();
 
-  // About modal
+  // Modal controls
   function showAbout() {
     const modal = document.getElementById('aboutModal');
     modal.style.display = 'flex';
@@ -339,59 +404,21 @@
     document.getElementById('aboutModal').style.display = 'none';
   }
 
+  // File open handling
   document.getElementById('fileInput').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    localStorage.setItem('loadedProject', e.target.result);
-    window.location.href = file.name.endsWith('.oi') ? 'open-illustrator.html' : 'editor.html';
-  };
-  reader.readAsText(file);
-});
-
-
-  // Quote modal
-  function openQuote() {
-    const quotes = [
-      "Creativity takes courage. – Henri Matisse",
-      "Every artist was first an amateur. – Ralph Waldo Emerson",
-      "Art enables us to find ourselves and lose ourselves at the same time. – Thomas Merton",
-      "The only way to do great work is to love what you do. – Steve Jobs",
-      "Don’t wait for inspiration. It comes while working. – Henri Matisse",
-    ];
-    const quoteText = document.getElementById('quoteText');
-    const modal = document.getElementById('quoteModal');
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    quoteText.textContent = randomQuote;
-    modal.style.display = 'flex';
-    modal.querySelector('button').focus();
-  }
-  function closeQuote() {
-    document.getElementById('quoteModal').style.display = 'none';
-  }
-
-  // Random alert
-  function randomAlert() {
-    alert("Surprise! Keep creating awesome stuff!");
-  }
-
-  // Change background to random color
-  function changeBackground() {
-    const colors = ['#121212', '#1e1e1e', '#003366', '#330033', '#222222', '#004d40', '#263238'];
-    document.body.style.background = colors[Math.floor(Math.random() * colors.length)];
-  }
-
-  // Toggle light/dark mode
-  function toggleDarkMode() {
-    document.body.classList.toggle('light-mode');
-  }
-
-  // Show current time alert
-  function showTime() {
-    const now = new Date();
-    alert("Current time: " + now.toLocaleTimeString());
-  }
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      localStorage.setItem('loadedProject', event.target.result);
+      if (file.name.endsWith('.oi')) {
+        window.location.href = 'open-illustrator.html';
+      } else {
+        window.location.href = 'editor.html';
+      }
+    };
+    reader.readAsText(file);
+  });
 </script>
 
 </body>
