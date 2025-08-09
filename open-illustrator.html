@@ -2,217 +2,307 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Open Illustrator V2.0 - Clean Layout</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Open Illustrator 2.1</title>
 <style>
+  /* Reset */
   * {
     box-sizing: border-box;
   }
-  html, body {
-    margin: 0; padding: 0;
-    height: 100%;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-    user-select: none;
-    font-size: 12px;
-    background: white; /* white background for the whole page */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f0f0;
     color: #222;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
   }
-  body, #app {
-    height: 100vh;
-    width: 100vw;
+  #app {
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    width: 100vw;
   }
 
-  /* Topbar */
+  /* Top menu bar */
   #topbar {
+    background: #202020;
     height: 48px;
-    border-bottom: 1px solid #ccc;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0 12px;
-    background: #eee;
+    padding: 0 10px;
+    color: white;
+    font-weight: 600;
+    user-select: none;
+    font-size: 13px;
+  }
+  #topbar .menu-group {
+    display: flex;
+    gap: 16px;
+    margin-right: 24px;
   }
   #topbar button {
-    height: 28px;
-    border: 1px solid #aaa;
-    background: white;
+    background: transparent;
+    border: none;
+    color: white;
+    font-weight: 600;
     cursor: pointer;
-    padding: 0 10px;
-    font-size: 12px;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
   }
-  #topbar button:hover {
-    background: #ddd;
+  #topbar button:hover, #topbar button:focus {
+    background: #505050;
+    outline: none;
   }
 
-  /* Main horizontal container */
+  /* Main area */
   #main {
     flex: 1;
     display: flex;
-    height: calc(100vh - 48px); /* fill remaining height */
-    min-height: 0; /* important for flexbox */
+    height: calc(100% - 48px);
   }
 
-  /* Toolbox container: fixed width on left */
-  #toolbox-container {
-    width: 160px;
+  /* Left toolbar */
+  #left-toolbar {
+    background: #333;
+    width: 64px;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #ccc;
-    /* no background */
+    align-items: center;
+    padding-top: 10px;
+    border-right: 1px solid #444;
+    gap: 8px;
   }
-
-  /* Toolbox grid box */
-  #toolbox {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 10px;
-  }
-  .tool-btn {
-    background: #f5f5f5;
-    border: 1px solid #bbb;
-    border-radius: 6px;
+  #left-toolbar button.tool-btn {
+    background: transparent;
+    border: none;
+    width: 48px;
+    height: 48px;
     cursor: pointer;
-    font-size: 28px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 70px;
-    user-select: none;
-    color: #333;
-    transition: all 0.2s ease;
-  }
-  .tool-btn small {
-    font-size: 10px;
-    margin-top: 4px;
-    color: #666;
-  }
-  .tool-btn:hover {
-    background: #ddd;
-    border-color: #888;
-    color: #000;
-  }
-  .tool-btn.selected {
-    background: #0078d7;
-    border-color: #005a9e;
+    padding: 8px;
+    border-radius: 6px;
     color: white;
-    font-weight: 600;
-  }
-
-  /* Settings bar below toolbox */
-  #settings-bar {
-    padding: 10px;
-    border-top: 1px solid #ccc;
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background-color 0.2s ease;
   }
-  #settings-bar > div {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 60px;
-  }
-  #settings-bar label {
-    font-size: 10px;
-    color: #555;
-    margin-bottom: 2px;
-  }
-  #settings-bar input[type=color],
-  #settings-bar input[type=number] {
+  #left-toolbar button.tool-btn svg {
+    width: 28px;
     height: 28px;
+    fill: white;
+  }
+  #left-toolbar button.tool-btn:hover,
+  #left-toolbar button.tool-btn:focus {
+    background-color: #505050;
+    outline: none;
+  }
+  #left-toolbar button.tool-btn.selected {
+    background-color: #0078d7;
+    fill: white;
+    color: white;
+  }
+  #left-toolbar button.tool-btn.selected svg {
+    fill: white;
+  }
+  /* Tooltip */
+  #left-toolbar button.tool-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #222;
+    color: white;
+    padding: 3px 8px;
     border-radius: 4px;
-    border: 1px solid #aaa;
-    padding: 0 6px;
-    font-size: 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  #left-toolbar button.tool-btn:hover::after,
+  #left-toolbar button.tool-btn:focus::after {
+    opacity: 1;
   }
 
-  /* Canvas container fills remaining space */
+  /* Canvas container */
   #canvas-container {
+    background: white;
     flex: 1;
-    min-width: 0; /* important for flex shrink */
-    min-height: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    overflow: hidden;
   }
-  canvas {
-    background: white;
+  canvas#canvas {
     border: 1px solid #ccc;
     width: 100%;
     height: 100%;
     display: block;
-    max-width: 100%;
-    max-height: 100%;
   }
 
-  /* Status bar at bottom */
+  /* Right panel */
+  #right-panel {
+    background: #f5f5f5;
+    width: 260px;
+    border-left: 1px solid #ccc;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    font-size: 13px;
+    user-select: text;
+  }
+  #right-panel h2 {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    color: #333;
+  }
+  #right-panel label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+    color: #555;
+  }
+  #right-panel input[type="color"],
+  #right-panel input[type="number"],
+  #right-panel select {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    outline-offset: 2px;
+  }
+  #right-panel input[type="number"]::-webkit-inner-spin-button,
+  #right-panel input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Status bar */
   #statusbar {
+    background: #202020;
     height: 24px;
-    border-top: 1px solid #ccc;
-    background: #f0f0f0;
-    color: #222;
+    color: white;
     font-size: 12px;
-    padding: 4px 12px;
+    padding: 3px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     user-select: none;
+    font-weight: 400;
+  }
+
+  /* Scrollbar for right panel */
+  #right-panel::-webkit-scrollbar {
+    width: 8px;
+  }
+  #right-panel::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  #right-panel::-webkit-scrollbar-track {
+    background: transparent;
   }
 </style>
 </head>
 <body>
-  <div id="app">
-    <div id="topbar" role="toolbar" aria-label="Main Toolbar">
+<div id="app" role="application" aria-label="Open Illustrator application">
+
+  <!-- Top menu bar -->
+  <div id="topbar" role="banner" aria-label="Application Menu">
+    <div class="menu-group" role="group" aria-label="File actions">
+      <button id="newBtn" title="New File">New</button>
+      <button id="saveJSONBtn" title="Save as .oi file">Save</button>
+      <button id="exportPNGBtn" title="Export as PNG">Export PNG</button>
+    </div>
+    <div class="menu-group" role="group" aria-label="Edit actions">
       <button id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
       <button id="redoBtn" title="Redo (Ctrl+Y)">Redo</button>
-      <button id="exportPNGBtn" title="Export as PNG">Export PNG</button>
-      <button id="saveJSONBtn" title="Save as JSON">Save</button>
-    </div>
-    <div id="main">
-      <div id="toolbox-container" aria-label="Toolbox and settings">
-        <div id="toolbox" role="toolbar" aria-label="Drawing Tools">
-          <button class="tool-btn selected" data-tool="select" title="Select Tool">🔲<small>Select</small></button>
-          <button class="tool-btn" data-tool="rect" title="Rectangle Tool">▭<small>Rectangle</small></button>
-          <button class="tool-btn" data-tool="ellipse" title="Ellipse Tool">⚪<small>Ellipse</small></button>
-          <button class="tool-btn" data-tool="line" title="Line Tool">➖<small>Line</small></button>
-          <button class="tool-btn" data-tool="pen" title="Pen Tool">✏️<small>Pen</small></button>
-          <button class="tool-btn" data-tool="eraser" title="Eraser Tool">🩹<small>Eraser</small></button>
-          <button class="tool-btn" data-tool="polygon" title="Polygon Tool">🔷<small>Polygon</small></button>
-          <button class="tool-btn" data-tool="bezier" title="Bezier Tool">〰️<small>Bezier</small></button>
-          <button class="tool-btn" data-tool="text" title="Text Tool">🅰️<small>Text</small></button>
-        </div>
-        <div id="settings-bar" aria-label="Tool Settings">
-          <div>
-            <label for="fillColorPicker">Fill Color</label>
-            <input type="color" id="fillColorPicker" value="#000000" aria-label="Fill Color Picker" />
-          </div>
-          <div>
-            <label for="strokeColorPicker">Stroke Color</label>
-            <input type="color" id="strokeColorPicker" value="#000000" aria-label="Stroke Color Picker" />
-          </div>
-          <div>
-            <label for="strokeWidthInput">Stroke Width</label>
-            <input type="number" id="strokeWidthInput" value="2" min="1" max="20" aria-label="Stroke Width Input" />
-          </div>
-          <div>
-            <label for="polygonSidesInput">Polygon Sides</label>
-            <input type="number" id="polygonSidesInput" value="5" min="3" max="12" aria-label="Polygon Sides Input" />
-          </div>
-        </div>
-      </div>
-      <div id="canvas-container">
-        <canvas id="canvas" tabindex="0" aria-label="Drawing Canvas"></canvas>
-      </div>
-    </div>
-    <div id="statusbar" role="status" aria-live="polite">
-      <div id="currentTool">Tool: Select</div>
-      <div id="coords">X: 0 Y: 0</div>
     </div>
   </div>
+
+  <div id="main">
+
+    <!-- Left vertical toolbar -->
+    <nav id="left-toolbar" role="toolbar" aria-label="Tools">
+      <button class="tool-btn selected" data-tool="select" aria-pressed="true" tabindex="0" data-tooltip="Select Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3 L21 12 L3 21 Z"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="rect" aria-pressed="false" tabindex="-1" data-tooltip="Rectangle Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" stroke="white" fill="none" stroke-width="2"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="ellipse" aria-pressed="false" tabindex="-1" data-tooltip="Ellipse Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="12" rx="8" ry="6" stroke="white" fill="none" stroke-width="2"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="line" aria-pressed="false" tabindex="-1" data-tooltip="Line Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="4" y1="20" x2="20" y2="4" stroke="white" stroke-width="2"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="pen" aria-pressed="false" tabindex="-1" data-tooltip="Pen Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 20 L12 4 L22 20" fill="none" stroke="white" stroke-width="2"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="eraser" aria-pressed="false" tabindex="-1" data-tooltip="Eraser Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6" y="8" width="12" height="8" fill="white"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="polygon" aria-pressed="false" tabindex="-1" data-tooltip="Polygon Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polygon points="12,4 20,9 17,20 7,20 4,9" fill="none" stroke="white" stroke-width="2"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="bezier" aria-pressed="false" tabindex="-1" data-tooltip="Bezier Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 16 C8 4, 16 4, 20 16" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="4" cy="16" r="2" fill="white"/>
+          <circle cx="20" cy="16" r="2" fill="white"/>
+        </svg>
+      </button>
+      <button class="tool-btn" data-tool="text" aria-pressed="false" tabindex="-1" data-tooltip="Text Tool">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <text x="3" y="18" fill="white" font-size="16" font-family="Arial, sans-serif" font-weight="700">T</text>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Canvas container -->
+    <main id="canvas-container" role="main" aria-label="Drawing Canvas Container">
+      <canvas id="canvas" tabindex="0" aria-label="Drawing Canvas"></canvas>
+    </main>
+
+    <!-- Right panel for properties -->
+    <aside id="right-panel" role="complementary" aria-label="Properties Panel">
+      <h2>Properties</h2>
+      <div>
+        <label for="fillColorPicker">Fill Color</label>
+        <input type="color" id="fillColorPicker" value="#000000" aria-label="Fill Color" />
+      </div>
+      <div>
+        <label for="strokeColorPicker">Stroke Color</label>
+        <input type="color" id="strokeColorPicker" value="#000000" aria-label="Stroke Color" />
+      </div>
+      <div>
+        <label for="strokeWidthInput">Stroke Width</label>
+        <input type="number" id="strokeWidthInput" value="2" min="1" max="20" aria-label="Stroke Width" />
+      </div>
+      <div>
+        <label for="polygonSidesInput">Polygon Sides</label>
+        <input type="number" id="polygonSidesInput" value="5" min="3" max="12" aria-label="Polygon Sides" />
+      </div>
+    </aside>
+  </div>
+
+  <!-- Status bar -->
+  <footer id="statusbar" role="contentinfo" aria-live="polite" aria-atomic="true">
+    <div id="currentTool" aria-live="polite">Tool: Select</div>
+    <div id="coords" aria-live="polite">X: 0 Y: 0</div>
+  </footer>
+</div>
 
 <script>
 (() => {
@@ -225,7 +315,7 @@
   const polygonSidesInput = document.getElementById("polygonSidesInput");
   const currentToolEl = document.getElementById("currentTool");
   const coordsEl = document.getElementById("coords");
-  const toolbox = document.getElementById("toolbox");
+  const toolbox = document.getElementById("left-toolbar");
 
   let w, h;
   let shapes = [];
@@ -237,18 +327,18 @@
   let startX = 0, startY = 0;
   let currentShape = null;
   let selectedShape = null;
-  let resizing = false;
-  let activeHandle = null;
-
-  // For Bezier Tool
   let bezierPoints = [];
 
   function resize() {
     const rect = container.getBoundingClientRect();
-    canvas.width = rect.width * 0.95;
-    canvas.height = rect.height * 0.95;
-    w = canvas.width;
-    h = canvas.height;
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+    w = canvas.width / devicePixelRatio;
+    h = canvas.height / devicePixelRatio;
     redraw();
   }
   window.addEventListener("resize", resize);
@@ -257,10 +347,10 @@
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    let x = (e.clientX - rect.left) * scaleX;
-    let y = (e.clientY - rect.top) * scaleY;
-    x = Math.min(Math.max(0, x), canvas.width);
-    y = Math.min(Math.max(0, y), canvas.height);
+    let x = (e.clientX - rect.left) * scaleX / devicePixelRatio;
+    let y = (e.clientY - rect.top) * scaleY / devicePixelRatio;
+    x = Math.min(Math.max(0, x), w);
+    y = Math.min(Math.max(0, y), h);
     return { x, y };
   }
 
@@ -292,6 +382,7 @@
       const isActive = b.dataset.tool === name;
       b.classList.toggle("selected", isActive);
       b.setAttribute("aria-pressed", isActive ? "true" : "false");
+      b.tabIndex = isActive ? 0 : -1;
     });
     selectedShape = null;
     bezierPoints = [];
@@ -334,133 +425,120 @@
       } else if (s.type === "pen") {
         if (s.points.length > 0) {
           ctx.moveTo(s.points[0].x, s.points[0].y);
-          s.points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-          if (selectedShape === s) {
-            ctx.fillStyle = "#ffd700";
-            s.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
+          for (let i = 1; i < s.points.length; i++) {
+            ctx.lineTo(s.points[i].x, s.points[i].y);
           }
+          ctx.stroke();
         }
-      } else if (s.type === "polygon") {
-        drawPolygon(ctx, s.x1, s.y1, s.radius, s.sides);
-        if (s.fill) ctx.fill();
-        ctx.stroke();
       } else if (s.type === "bezier") {
         if (s.points.length === 4) {
-          const [p0, p1, p2, p3] = s.points;
-          ctx.moveTo(p0.x, p0.y);
-          ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+          ctx.moveTo(s.points[0].x, s.points[0].y);
+          ctx.bezierCurveTo(
+            s.points[1].x, s.points[1].y,
+            s.points[2].x, s.points[2].y,
+            s.points[3].x, s.points[3].y
+          );
           ctx.stroke();
-          if (selectedShape === s) {
-            ctx.fillStyle = "#ffd700";
-            s.points.forEach(p => ctx.fillRect(p.x - 4, p.y - 4, 8, 8));
-          }
         }
+      } else if (s.type === "polygon") {
+        const cx = s.x1, cy = s.y1, radius = s.radius || 50;
+        const sides = s.sides || 5;
+        if (sides < 3) return;
+        const angle = (2 * Math.PI) / sides;
+        ctx.moveTo(cx + radius * Math.cos(0), cy + radius * Math.sin(0));
+        for (let i = 1; i <= sides; i++) {
+          ctx.lineTo(cx + radius * Math.cos(i * angle), cy + radius * Math.sin(i * angle));
+        }
+        if (s.fill) ctx.fill();
+        ctx.stroke();
       } else if (s.type === "text") {
-        ctx.fillStyle = s.color || "#000";
         ctx.font = `${s.fontSize || 20}px sans-serif`;
+        ctx.fillStyle = s.color || "#000";
         ctx.fillText(s.text, s.x, s.y);
       }
 
-      if (selectedShape === s) drawHandles(s);
-    });
-  }
-
-  function drawPolygon(ctx, cx, cy, radius, sides) {
-    if (sides < 3) return;
-    const angle = (Math.PI * 2) / sides;
-    ctx.beginPath();
-    ctx.moveTo(cx + radius * Math.cos(0), cy + radius * Math.sin(0));
-    for (let i = 1; i < sides; i++) {
-      ctx.lineTo(cx + radius * Math.cos(i * angle), cy + radius * Math.sin(i * angle));
-    }
-    ctx.closePath();
-  }
-
-  function drawHandles(s) {
-    removeHandles();
-    let handles = [];
-
-    if (s.type === "rect" || s.type === "ellipse") {
-      const minX = Math.min(s.x1, s.x2);
-      const maxX = Math.max(s.x1, s.x2);
-      const minY = Math.min(s.y1, s.y2);
-      const maxY = Math.max(s.y1, s.y2);
-      handles = [
-        { name: "tl", x: minX, y: minY },
-        { name: "tr", x: maxX, y: minY },
-        { name: "bl", x: minX, y: maxY },
-        { name: "br", x: maxX, y: maxY }
-      ];
-    } else if (s.type === "polygon") {
-      const angleStep = (Math.PI * 2) / s.sides;
-      for (let i = 0; i < s.sides; i++) {
-        handles.push({
-          name: "v" + i,
-          x: s.x1 + s.radius * Math.cos(i * angleStep),
-          y: s.y1 + s.radius * Math.sin(i * angleStep)
-        });
+      if (selectedShape === s) {
+        ctx.save();
+        ctx.strokeStyle = "#0078d7";
+        ctx.lineWidth = 2;
+        if (s.type === "rect") {
+          const x = Math.min(s.x1, s.x2), y = Math.min(s.y1, s.y2);
+          const width = Math.abs(s.x2 - s.x1);
+          const height = Math.abs(s.y2 - s.y1);
+          ctx.strokeRect(x - 3, y - 3, width + 6, height + 6);
+        } else if (s.type === "ellipse") {
+          const rx = Math.abs((s.x2 - s.x1) / 2), ry = Math.abs((s.y2 - s.y1) / 2);
+          const cx = Math.min(s.x1, s.x2) + rx;
+          const cy = Math.min(s.y1, s.y2) + ry;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx + 3, ry + 3, 0, 0, 2 * Math.PI);
+          ctx.stroke();
+        } else if (s.type === "line") {
+          ctx.beginPath();
+          ctx.moveTo(s.x1, s.y1);
+          ctx.lineTo(s.x2, s.y2);
+          ctx.stroke();
+        } else if (s.type === "pen") {
+          ctx.beginPath();
+          ctx.moveTo(s.points[0].x, s.points[0].y);
+          for (let i = 1; i < s.points.length; i++) {
+            ctx.lineTo(s.points[i].x, s.points[i].y);
+          }
+          ctx.stroke();
+        } else if (s.type === "bezier") {
+          ctx.beginPath();
+          ctx.moveTo(s.points[0].x, s.points[0].y);
+          ctx.bezierCurveTo(
+            s.points[1].x, s.points[1].y,
+            s.points[2].x, s.points[2].y,
+            s.points[3].x, s.points[3].y
+          );
+          ctx.stroke();
+        } else if (s.type === "polygon") {
+          const cx = s.x1, cy = s.y1, radius = s.radius || 50;
+          const sides = s.sides || 5;
+          const angle = (2 * Math.PI) / sides;
+          ctx.beginPath();
+          ctx.moveTo(cx + radius * Math.cos(0), cy + radius * Math.sin(0));
+          for (let i = 1; i <= sides; i++) {
+            ctx.lineTo(cx + radius * Math.cos(i * angle), cy + radius * Math.sin(i * angle));
+          }
+          ctx.stroke();
+        } else if (s.type === "text") {
+          const width = ctx.measureText(s.text).width;
+          const height = s.fontSize || 20;
+          ctx.strokeRect(s.x - 3, s.y - height, width + 6, height + 6);
+        }
+        ctx.restore();
       }
-    } else if (s.type === "bezier") {
-      handles = s.points.map((p, i) => ({ name: "p" + i, x: p.x, y: p.y }));
-    } else if (s.type === "pen") {
-      handles = s.points.map((p, i) => ({ name: "p" + i, x: p.x, y: p.y }));
-    } else if (s.type === "line") {
-      handles = [
-        { name: "start", x: s.x1, y: s.y1 },
-        { name: "end", x: s.x2, y: s.y2 }
-      ];
-    } else if (s.type === "text") {
-      handles = [{ name: "pos", x: s.x, y: s.y }];
-    }
-
-    handles.forEach(h => {
-      const div = document.createElement("div");
-      div.className = "handle";
-      div.style.position = "absolute";
-      div.style.left = h.x + "px";
-      div.style.top = h.y + "px";
-      div.style.width = "12px";
-      div.style.height = "12px";
-      div.style.background = "#fdd835";
-      div.style.border = "2px solid #000";
-      div.style.borderRadius = "50%";
-      div.style.transform = "translate(-50%, -50%)";
-      div.style.cursor = "pointer";
-      div.style.boxShadow = "0 0 4px rgba(0,0,0,0.6)";
-      div.dataset.handle = h.name;
-      container.appendChild(div);
     });
   }
-  function removeHandles() {
-    const existing = container.querySelectorAll(".handle");
-    existing.forEach(e => e.remove());
-  }
 
-  // Hit testing functions for shapes
   function hitTestShapes(x, y) {
     for (let i = shapes.length - 1; i >= 0; i--) {
       const s = shapes[i];
-      if (s.type === "rect" || s.type === "ellipse") {
+      if (s.type === "rect") {
         const minX = Math.min(s.x1, s.x2);
         const maxX = Math.max(s.x1, s.x2);
         const minY = Math.min(s.y1, s.y2);
         const maxY = Math.max(s.y1, s.y2);
         if (x >= minX && x <= maxX && y >= minY && y <= maxY) return s;
+      } else if (s.type === "ellipse") {
+        const rx = Math.abs((s.x2 - s.x1) / 2);
+        const ry = Math.abs((s.y2 - s.y1) / 2);
+        const cx = Math.min(s.x1, s.x2) + rx;
+        const cy = Math.min(s.y1, s.y2) + ry;
+        const dx = x - cx;
+        const dy = y - cy;
+        if ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1) return s;
       } else if (s.type === "line") {
-        // Basic bounding box check, could improve
-        const minX = Math.min(s.x1, s.x2);
-        const maxX = Math.max(s.x1, s.x2);
-        const minY = Math.min(s.y1, s.y2);
-        const maxY = Math.max(s.y1, s.y2);
-        if (x >= minX - 5 && x <= maxX + 5 && y >= minY - 5 && y <= maxY + 5) return s;
+        const distToLine = pointLineDistance(x, y, s.x1, s.y1, s.x2, s.y2);
+        if (distToLine < 5) return s;
       } else if (s.type === "polygon") {
-        // Simple circle hit for polygon center + radius
-        const dx = x - s.x1;
-        const dy = y - s.y1;
-        if (Math.sqrt(dx * dx + dy * dy) <= s.radius) return s;
-      } else if (s.type === "bezier" || s.type === "pen") {
-        // Hit test points approx
+        const cx = s.x1, cy = s.y1, radius = s.radius || 50;
+        const sides = s.sides || 5;
+        if (pointInRegularPolygon(x, y, cx, cy, radius, sides)) return s;
+      } else if (s.type === "pen" || s.type === "bezier") {
         for (const p of s.points) {
           if (Math.abs(p.x - x) < 8 && Math.abs(p.y - y) < 8) return s;
         }
@@ -468,10 +546,43 @@
         ctx.font = `${s.fontSize || 20}px sans-serif`;
         const width = ctx.measureText(s.text).width;
         const height = s.fontSize || 20;
-        if (x >= s.x && x <= s.x + width && y >= s.y - height && y <= s.y) return s;
+        if (x >= s.x && x <= s.x + width && y <= s.y && y >= s.y - height) return s;
       }
     }
     return null;
+  }
+  function pointLineDistance(px, py, x1, y1, x2, y2) {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+    const dot = A * C + B * D;
+    const len_sq = C * C + D * D;
+    let param = -1;
+    if (len_sq !== 0) param = dot / len_sq;
+    let xx, yy;
+    if (param < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * C;
+      yy = y1 + param * D;
+    }
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  function pointInRegularPolygon(px, py, cx, cy, r, sides) {
+    // Approximate by checking angle and distance
+    const dx = px - cx;
+    const dy = py - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > r) return false;
+    // More complex polygon point-in shape check omitted for brevity
+    return true;
   }
 
   canvas.addEventListener("mousedown", e => {
@@ -592,6 +703,15 @@
     a.download = "drawing.oi";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  document.getElementById("newBtn").onclick = () => {
+    if (confirm("Clear the current drawing and start a new one?")) {
+      shapes = [];
+      selectedShape = null;
+      saveState();
+      redraw();
+    }
   };
 
   resize();
