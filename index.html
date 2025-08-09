@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <title>The Open Project</title>
-<link rel="icon" href="favicon.ico" type="image/x-icon" />
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
@@ -32,8 +32,8 @@
     width: 700px;
     height: 80vh;
     background: #1b1b1b;
-    border: 1px solid #333;
-    box-shadow: 0 0 6px rgba(0,0,0,0.8);
+    border: 1px solid #005a9e; /* deep blue border */
+    box-shadow: 0 0 8px rgba(0, 120, 215, 0.7);
     padding: 24px 30px;
     box-sizing: border-box;
     gap: 24px;
@@ -42,8 +42,8 @@
 
   body.light-mode .menu-container {
     background: #fff;
-    border-color: #ccc;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-color: #7ab8ff;
+    box-shadow: 0 0 12px rgba(0, 120, 215, 0.3);
   }
 
   .left-menu {
@@ -58,7 +58,7 @@
     margin: 0 0 24px 0;
     font-weight: 600;
     font-size: 2rem;
-    color: #0078D7; /* blue accent */
+    color: #0078D7;
     letter-spacing: 0.05em;
     text-align: center;
     user-select: none;
@@ -75,13 +75,13 @@
   }
 
   body.light-mode h1 {
-    color: #005ea2; /* darker blue for light mode */
+    color: #005a9e;
   }
 
   button {
     background: transparent;
-    border: 1.5px solid #666;
-    color: #ccc;
+    border: 1.8px solid #0078D7;
+    color: #0078D7;
     font-weight: 600;
     font-size: 14px;
     padding: 14px 20px;
@@ -90,9 +90,9 @@
     align-items: center;
     gap: 10px;
     user-select: none;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     text-transform: uppercase;
-    border-radius: 4px;
+    border-radius: 5px;
   }
   button img {
     width: 20px;
@@ -100,50 +100,49 @@
     pointer-events: none;
   }
   button:hover {
-    border-color: #0078D7;
-    color: #0078D7;
-    background: rgba(0, 120, 215, 0.12);
+    background: rgba(0, 120, 215, 0.15);
+    border-color: #005a9e;
+    color: #005a9e;
   }
   body.light-mode button {
-    border-color: #aaa;
-    color: #444;
+    border-color: #7ab8ff;
+    color: #0078D7;
   }
   body.light-mode button:hover {
-    border-color: #005ea2;
-    color: #005ea2;
-    background: #ddeeff;
+    background: #d0e7ff;
+    color: #004578;
+    border-color: #004578;
   }
   button:focus {
     outline: none;
-    box-shadow: 0 0 4px #3399ff;
+    box-shadow: 0 0 6px #0078D7;
   }
 
   .right-menu {
     width: 300px;
     background: #222;
-    border: 1px solid #333;
+    border: 1px solid #005a9e;
     border-radius: 4px;
     display: flex;
     flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
     transition: background 0.3s ease, border-color 0.3s ease;
-    overflow-y: auto;
   }
   body.light-mode .right-menu {
     background: #fafafa;
-    border-color: #ccc;
+    border-color: #7ab8ff;
   }
 
   .recent-projects strong {
-    color: #3399ff;
+    color: #7ab8ff;
     font-size: 13px;
     margin-bottom: 14px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
   body.light-mode .recent-projects strong {
-    color: #005ea2;
+    color: #005a9e;
   }
   .recent-item {
     background: #1c1c1c;
@@ -151,7 +150,7 @@
     margin-bottom: 8px;
     border-radius: 3px;
     cursor: pointer;
-    color: #bbb;
+    color: #8db9ff;
     font-size: 13px;
     white-space: nowrap;
     overflow: hidden;
@@ -159,19 +158,16 @@
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   body.light-mode .recent-item {
-    background: #eee;
-    color: #333;
+    background: #e6f0ff;
+    color: #003763;
   }
-  .recent-item:hover,
-  .recent-item:focus-visible {
-    background: #0078D7;
-    color: white;
-    outline: none;
+  .recent-item:hover {
+    background: #005a9e;
+    color: #d0e7ff;
   }
-  body.light-mode .recent-item:hover,
-  body.light-mode .recent-item:focus-visible {
-    background: #005ea2;
-    color: white;
+  body.light-mode .recent-item:hover {
+    background: #004578;
+    color: #b6d1ff;
   }
 
   footer {
@@ -190,6 +186,7 @@
     color: #888;
   }
 
+  /* Modal Styles */
   .modal {
     display: none;
     position: fixed;
@@ -202,30 +199,30 @@
   .modal-content {
     background: #1b1b1b;
     padding: 24px;
-    border: 1px solid #333;
-    box-shadow: 0 0 12px #000;
+    border: 1px solid #005a9e;
+    box-shadow: 0 0 12px #004578;
     max-width: 360px;
-    color: #ccc;
+    color: #8db9ff;
     font-size: 14px;
     border-radius: 6px;
     transition: background 0.3s ease, color 0.3s ease;
   }
   body.light-mode .modal-content {
     background: #fff;
-    border-color: #ccc;
-    color: #222;
+    border-color: #7ab8ff;
+    color: #005a9e;
   }
   .modal-content h2 {
     margin-top: 0;
     margin-bottom: 14px;
     font-weight: 600;
-    color: #3399ff;
+    color: #0078D7;
     text-transform: uppercase;
     font-size: 18px;
     letter-spacing: 0.05em;
   }
   body.light-mode .modal-content h2 {
-    color: #005ea2;
+    color: #005a9e;
   }
   .modal-content p {
     line-height: 1.4;
@@ -234,8 +231,8 @@
   .modal-content button {
     margin-top: 16px;
     background: transparent;
-    border: 1px solid #666;
-    color: #bbb;
+    border: 1px solid #0078D7;
+    color: #0078D7;
     padding: 8px 14px;
     font-weight: 600;
     cursor: pointer;
@@ -244,32 +241,14 @@
     border-radius: 4px;
   }
   .modal-content button:hover {
-    background: #0078D7;
-    color: #fff;
-    border-color: #0078D7;
+    background: #005a9e;
+    color: #d0e7ff;
+    border-color: #004578;
   }
   body.light-mode .modal-content button:hover {
-    background: #005ea2;
-    color: #ddd;
-    border-color: #005ea2;
-  }
-
-  /* Scrollbar for recent projects */
-  .right-menu::-webkit-scrollbar {
-    width: 8px;
-  }
-  .right-menu::-webkit-scrollbar-track {
-    background: #1b1b1b;
-  }
-  .right-menu::-webkit-scrollbar-thumb {
-    background: #0078D7;
-    border-radius: 4px;
-  }
-  body.light-mode .right-menu::-webkit-scrollbar-track {
-    background: #fafafa;
-  }
-  body.light-mode .right-menu::-webkit-scrollbar-thumb {
-    background: #005ea2;
+    background: #004578;
+    color: #b6d1ff;
+    border-color: #00345e;
   }
 </style>
 </head>
@@ -278,33 +257,29 @@
 <div class="menu-container" role="main" aria-label="Main menu">
   <div class="left-menu" aria-label="Primary actions">
     <h1>
-      <img src="OpenAdobe.png" alt="The Open Project logo" />
+      <img src="OpenAdobe.png" alt="Open Project Logo" />
       The Open Project
     </h1>
+
     <button onclick="window.location.href='editor.html'" aria-label="New Animate Project">
-      <img src="animate.png" alt="Animate icon"> New Animate Project
+      <img src="animate.png" alt="Animate Icon" /> New Animate Project
     </button>
+
     <button onclick="window.location.href='open-illustrator.html'" aria-label="New Illustrator Project">
-      <img src="illustrator.png" alt="Illustrator icon"> New Illustrator Project
+      <img src="illustrator.png" alt="Illustrator Icon" /> New Illustrator Project
     </button>
+
     <input type="file" accept=".oa,.oi" style="display: none;" id="fileInput" />
-    <button onclick="document.getElementById('fileInput').click()">
-      <img src="file_open.png" alt="Open file icon"> Open io/ia
+    <button onclick="document.getElementById('fileInput').click()" aria-label="Open Project File">
+      <img src="file_open.png" alt="Open File Icon" /> Open Project
     </button>
+
     <button onclick="showAbout()" aria-label="About this project">
-      <img src="info.png" alt="Info icon"> About
+      <img src="info.png" alt="Info Icon" /> About
     </button>
-
-    <hr style="border-color:#444; margin: 20px 0;" />
-
-    <button onclick="randomAlert()" aria-label="Random alert">⚡ Surprise Alert</button>
-    <button onclick="changeBackground()" aria-label="Change background color">🎨 Change Background</button>
-    <button onclick="toggleDarkMode()" aria-label="Toggle light/dark mode">🌗 Toggle Dark Mode</button>
-    <button onclick="showTime()" aria-label="Show current time">⏰ Show Time</button>
-    <button onclick="openQuote()" aria-label="Open inspirational quote">💡 Quote</button>
   </div>
 
-  <div class="right-menu" aria-label="Recent projects" tabindex="0">
+  <div class="right-menu" aria-label="Recent projects">
     <div class="recent-projects" id="recentList">
       <strong>Recent Projects</strong>
     </div>
@@ -320,15 +295,6 @@
     <p>Open Animate is a free, open-source web-based animation tool inspired by Adobe Animate.</p>
     <p>Created for creators who want full control without subscriptions.</p>
     <button onclick="closeAbout()" aria-label="Close about modal">Close</button>
-  </div>
-</div>
-
-<!-- Quote Modal -->
-<div class="modal" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
-  <div class="modal-content">
-    <h2 id="quoteTitle">Inspirational Quote</h2>
-    <p id="quoteText"></p>
-    <button onclick="closeQuote()" aria-label="Close quote modal">Close</button>
   </div>
 </div>
 
@@ -371,6 +337,7 @@
     document.getElementById('aboutModal').style.display = 'none';
   }
 
+  // File open
   document.getElementById('fileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -381,48 +348,6 @@
     };
     reader.readAsText(file);
   });
-
-  // Quote modal
-  function openQuote() {
-    const quotes = [
-      "Creativity takes courage. – Henri Matisse",
-      "Every artist was first an amateur. – Ralph Waldo Emerson",
-      "Art enables us to find ourselves and lose ourselves at the same time. – Thomas Merton",
-      "The only way to do great work is to love what you do. – Steve Jobs",
-      "Don’t wait for inspiration. It comes while working. – Henri Matisse",
-    ];
-    const quoteText = document.getElementById('quoteText');
-    const modal = document.getElementById('quoteModal');
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    quoteText.textContent = randomQuote;
-    modal.style.display = 'flex';
-    modal.querySelector('button').focus();
-  }
-  function closeQuote() {
-    document.getElementById('quoteModal').style.display = 'none';
-  }
-
-  // Random alert
-  function randomAlert() {
-    alert("Surprise! Keep creating awesome stuff!");
-  }
-
-  // Change background to random color
-  function changeBackground() {
-    const colors = ['#121212', '#1e1e1e', '#003366', '#330033', '#222222', '#004d40', '#263238'];
-    document.body.style.background = colors[Math.floor(Math.random() * colors.length)];
-  }
-
-  // Toggle light/dark mode
-  function toggleDarkMode() {
-    document.body.classList.toggle('light-mode');
-  }
-
-  // Show current time alert
-  function showTime() {
-    const now = new Date();
-    alert("Current time: " + now.toLocaleTimeString());
-  }
 </script>
 
 </body>
